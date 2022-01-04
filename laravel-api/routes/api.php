@@ -14,9 +14,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// 이런식으로 미들웨어 적용해야 에러 안남
 Route::prefix("users")->group(function () {
+    // token이 필요없는 route
     Route::post("/register", [JWTAuthController::class, 'register']);
     Route::post("/login", [JWTAuthController::class, 'login']);
+
+    // token이 필요한 route
+    Route::group(['middleware' => 'auth:api'], function () {
+        Route::get("/user", [JWTAuthController::class, 'user']);
+        Route::get("/logout", [JWTAuthController::class, 'logout']);
+    });
 });
 
 // 이런식으로 미들웨어 적용시 에러
@@ -25,32 +33,23 @@ Route::prefix("users")->group(function () {
 //     Route::get("/logout", [JWTAuthController::class, 'logout']);
 // });
 
+Route::prefix("rooms")->group(function () {
+    // token이 필요없는 route
 
-// 이런식으로 미들웨어 적용해야 에러 안남
-Route::group(['middleware' => 'auth:api'], function () {
-    Route::prefix("users")->group(function () {
-        Route::get("/user", [JWTAuthController::class, 'user']);
-        Route::get("/logout", [JWTAuthController::class, 'logout']);
+    // token이 필요한 route
+    Route::group(['middleware' => 'auth:api'], function () {
+
     });
 });
 
-// // 로그인 상관없는 api
-Route::prefix("rooms")->group(function () {
-
-});
-
-// // 로그인한 유저만 가능한 api
-// Route::prefix("rooms")->group(['middleware' => 'auth:api'], function () {
-
-// });
-
 Route::prefix("posts")->group(function () {
+    // token이 필요없는 route
 
+    // token이 필요한 route
+    Route::group(['middleware' => 'auth:api'], function () {
+
+    });
 });
-
-// Route::prefix("posts")->group(['middleware' => 'auth:api'], function () {
-
-// });
 
 Route::get('unauthorized', function() {
     return response()->json([
