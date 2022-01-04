@@ -73,7 +73,7 @@ class JWTAuthController extends Controller
             'expires_in' => auth('api')->factory()->getTTL() * 360,
             'loginSuccess' => true,
             'userId' => $user_id,
-        ], 200);
+        ], 200)->withCookie('access_token', $token);
     }
 
     public function refresh() {
