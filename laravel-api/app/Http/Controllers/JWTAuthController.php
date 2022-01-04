@@ -12,8 +12,8 @@ class JWTAuthController extends Controller
         return response()->json(auth('api')->user());
     }
 
-    public function register(Request $request) {
-        $validator = Validator::make($request->all(), [
+    public function register(Request $req) {
+        $validator = Validator::make($req->all(), [
             'name' => 'required|string|max:100',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|string|min:8|max:255|confirmed',
@@ -28,14 +28,20 @@ class JWTAuthController extends Controller
         }
 
         $user = new User();
-        $user->fill($request->all());
-        $user->password = bcrypt($request->password);
+        $user->fill($req->all());
+        $user->password = bcrypt($req->password);
         $user->save();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $user
-        ], 200);
+        // return response()->json([
+        //     'status' => 'success',
+        //     'data' => $user
+        // ], 200);
+
+        if (!$token = auth('api')->attempt(['email' => $req->email, 'password' => $req->password])) {
+            return response()->json(['error' => 'Unuthorized'], 401);
+        }
+
+        return $this->respondWithToken($token, $req->email);
     }
 
     public function login(Request $req) {
