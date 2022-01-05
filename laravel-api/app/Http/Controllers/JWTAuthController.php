@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
 
 class JWTAuthController extends Controller
@@ -83,9 +84,13 @@ class JWTAuthController extends Controller
     public function logout() {
         auth('api')->logout();
 
+        if (Cookie::has('access_token')) {
+            $cookie = Cookie::forget('access_token');
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'logout'
-        ], 200);
+        ], 200)->withCookie($cookie);
     }
 }
