@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\JWTAuthController;
 use Illuminate\Support\Facades\Route;
+use Namshi\JOSE\Signer\OpenSSL\RSA;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['cors'])->group(function() {
-    Route::get('/csrf_token', function(){
+    Route::get('/csrf_token', function() {
         return csrf_token();
     });
 
