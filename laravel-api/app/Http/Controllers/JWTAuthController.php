@@ -74,7 +74,7 @@ class JWTAuthController extends Controller
             'expires_in' => auth('api')->factory()->getTTL() * 360,
             'loginSuccess' => true,
             'userId' => $user_id,
-        ], 200)->withCookie('access_token', $token);
+        ], 200);
     }
 
     public function refresh() {
@@ -84,13 +84,9 @@ class JWTAuthController extends Controller
     public function logout() {
         auth('api')->logout();
 
-        if (Cookie::has('access_token')) {
-            $cookie = Cookie::forget('access_token');
-        }
-
         return response()->json([
             'status' => 'success',
             'message' => 'logout'
-        ], 200)->withCookie($cookie);
+        ], 200);
     }
 }
