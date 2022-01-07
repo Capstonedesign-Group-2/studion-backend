@@ -52,8 +52,13 @@ class RoomController extends Controller
         for ($i = 0; $i < $rooms->count(); $i++) {
             $room_id = $rooms[$i]->id;
 
-            $users =
+            $users = Chat_user::where('room_id', $room_id)->get();
 
+            for ($j = 0; $j <$users->count(); $j++) {
+                $users[$j]->user;
+            }
+
+            $rooms[$i]->users = $users;
         }
 
         return response()->json([
