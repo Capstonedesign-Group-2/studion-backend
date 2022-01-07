@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\JWTAuthController;
+use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 use Namshi\JOSE\Signer\OpenSSL\RSA;
 
@@ -41,10 +42,11 @@ Route::middleware(['cors'])->group(function() {
 
     Route::prefix("rooms")->group(function () {
         // token이 필요없는 route
+        Route::get("/show", [RoomController::class, 'show']);
 
         // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
-
+            Route::post("/create", [RoomController::class, 'create']);
         });
     });
 
