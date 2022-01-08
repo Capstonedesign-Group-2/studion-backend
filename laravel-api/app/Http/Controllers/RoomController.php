@@ -64,6 +64,96 @@ class RoomController extends Controller
         return response()->json([
             'status' => 'success',
             'rooms' => $rooms,
+        ], 200);
+    }
+
+    public function update(Request $req, $room_id) {
+        $validator = Validator::make($req->all(), [
+            'title' => 'required|string|max:255',
+            'creater' => 'required|integer',
+            'content' => 'required|string|max:255',
+            'max' => 'required|integer',
+            'locked' => 'required|integer',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 200);
+        }
+
+        $room = Room::find($room_id);
+        $room_creater = $room->creater;
+
+        if (!($room_creater == $req->creater)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => '작성자가 아닙니다.'
+            ], 200);
+        }
+
+        $room->fill($req->all());
+        $room->save();
+
+        return response()->json([
+            'status' => 'success',
+            'room' => $room
+        ]);
+    }
+
+    public function destory(Request $req, $room_id) {
+        $validator = Validator::make($req->all(), [
+            'creater' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 200);
+        }
+
+        $room = Room::find($room_id);
+        $room_creater = $room->creater;
+
+        if (!($room_creater == $req->creater)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => '작성자가 아닙니다.'
+            ], 200);
+        }
+
+        $room->delete();
+        Chat_user::where('room_id', $room_id)->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => '방을 삭제하였습니다.'
+        ], 200);
+    }
+
+    public function enter(Request $req, $room_id) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 200);
+        }
+
+        $user = new Chat_user();
+        $user->user_id = $req->user_id;
+        $user->room_id = $room_id;
+        $user->flag = 0;
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'user' => $user,
+        ], 200);
     }
 }

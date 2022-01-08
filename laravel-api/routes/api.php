@@ -47,6 +47,9 @@ Route::middleware(['cors'])->group(function() {
         // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
             Route::post("/create", [RoomController::class, 'create']);
+            Route::post("/enter/{room_id}", [RoomController::class, 'enter']);
+            Route::patch("/update/{room_id}", [RoomController::class, 'update']);
+            Route::delete("/destory/{room_id}", [RoomController::class, 'destory']);
         });
     });
 
