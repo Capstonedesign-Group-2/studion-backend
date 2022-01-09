@@ -50,6 +50,7 @@ Route::middleware(['cors'])->group(function() {
             Route::post("/enter/{room_id}", [RoomController::class, 'enter']);
             Route::patch("/update/{room_id}", [RoomController::class, 'update']);
             Route::delete("/destory/{room_id}", [RoomController::class, 'destory']);
+            Route::delete("/exit/{room_id}", [RoomController::class, 'exit']);
         });
     });
 

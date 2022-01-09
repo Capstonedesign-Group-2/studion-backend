@@ -154,6 +154,28 @@ class RoomController extends Controller
         return response()->json([
             'status' => 'success',
             'user' => $user,
+            'message' => '방을 입장하였습니다.'
+        ], 200);
+    }
+
+    public function exit(Request $req, $room_id) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 200);
+        }
+
+        Chat_user::where('user_id', $req->user_id)->where('room_id', $room_id)
+                ->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => '방을 퇴장하였습니다.',
         ], 200);
     }
 }
