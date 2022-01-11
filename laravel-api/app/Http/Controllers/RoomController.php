@@ -26,8 +26,29 @@ class RoomController extends Controller
         }
 
         // 방 만들기
+        // locked 0이면 false로 공개방
+        // 1이면 true로 비밀방
         $room = new Room();
         $room->fill($req->all());
+        $password = $req->password;
+        $room->password = $password;
+
+        if (!$room->locked) {
+            if (isset($password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => '비밀번호를 지워주세요'
+                ]);
+            }
+        } else {
+            if (!isset($password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => '비밀번호를 입력해주세요'
+                ]);
+            }
+        }
+
         $room->save();
 
         // 방 만들면 chat_user테이블에 방장 추가
@@ -143,6 +164,17 @@ class RoomController extends Controller
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
             ], 200);
+        }
+
+        $room = Room::find($room_id);
+
+        if ($room->locked) {
+            if ($room->password != $req->password) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => '비밀번호를 다시 입력해주세요.',
+                ]);
+            }
         }
 
         $user = new Chat_user();
