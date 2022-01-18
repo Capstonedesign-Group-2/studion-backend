@@ -16,7 +16,10 @@ let socketToRoom = {};
 const maximum = process.env.MAXIMUM || 4;
 
 io.on('connection', socket => {
+    // 방 입장
     socket.on('join_room', data => {
+        // data
+        // 
         if (users[data.room]) {
             const length = users[data.room].length;
 
@@ -39,7 +42,47 @@ io.on('connection', socket => {
         console.log(usersInThisRoom);
 
         io.sockets.to(socket.id).emit('all_users', usersInThisRoom);
-    })
+    });
+
+    // webRTC 시그널링
+    socket.on('offer', data => {
+        socket.to(data.offerReceiveID).emit('getOffer', {
+            sdp: data.sdp,
+            offerSendID: data.offerSendID,
+            offerSendEmail: data.offerSendEmail
+        });
+    });
+
+    socket.on('answer', data => {
+        socket.to(data.answerReceiveID).emit('getAnswer', {
+            sdp: data.sdp, 
+            answerSendID: data.answerSendID
+        });
+    });
+
+    socket.on('candidate', data => {
+        socket.to(data.candidateReceiveID).emit('getCandidate', {
+            candidate: data.candidate, 
+            candidateSendID: data.candidateSendID
+        });
+    });
+
+    // 방 퇴장
+    socket.on('disconnect', () => {
+        const roomID = socketToRoom[socket.id];
+        let room = users[roomID];
+
+        if (room) {
+            room = room.filter(user => user.id != socket.id);
+            users[roomID] = room; 
+            if (room.length === 0) {
+                delete users[roomID];
+                return;
+            }  
+        }
+
+        socket.to(roomID).emit('user_exit', {id: socket.id});
+    });
 });
 
 server.listen(PORT, () => {
