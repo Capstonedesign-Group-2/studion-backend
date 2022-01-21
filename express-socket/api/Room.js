@@ -1,30 +1,66 @@
-const { setting } = require('../http/index.js');
+const htp = require('../http/index.js');
 
-const createRoom = async (token, data) => {
-    let res = await setting(token).post(
-        'http://127.0.0.1:8000/api/rooms/create',
+const obj = {};
+
+obj.createRoom = async (token, data) => {
+    let res = await htp.setting(token).post(
+        '/rooms/create',
+        data
+    );
+    console.log(res.data);
+    return res.data;
+}
+
+obj.roomList = async () => {
+    let res = await htp.setting().get(
+        '/rooms/show'
+    );
+
+    return res.data;
+}
+
+obj.enterRoom = async (token, roomId, data) => {
+    let res = await htp.setting(token).post(
+        `/rooms/enter/${roomId}`,
         data
     );
 
-    return res;
+    return res.data;
 }
 
-const exitRoom = async (token, roomId, userId) => {
-    let res = await setting(token).delete(
-        `http://127.0.0.1:8000/api/rooms/exit/${roomId}`,
+obj.updateRoom = async (token, roomId, data) => {
+    let res = await htp.setting(token).patch(
+        `/rooms/update/${roomId}`,
+        data
+    );
+
+    return res.data;
+}
+
+obj.exitRoom = async (token, roomId, userId) => {
+    let res = await htp.setting(token).delete(
+        `/rooms/exit/${roomId}`,
         { data: { user_id: userId }}
     );
 
-    return res;
+    return res.data;
 }
 
-const destoryRoom = async (token, roomId, userId) => {
-    let res = await setting(token).delete(
-        `http://127.0.0.1:8000/api/rooms/destory/${roomId}`,
+obj.destoryRoom = async (token, roomId, userId) => {
+    let res = await htp.setting(token).delete(
+        `/rooms/destory/${roomId}`,
         { data: { user_id: userId }}
     );
 
-    return res;
+    return res.data;
 }
 
-module.exports = { createRoom, exitRoom };
+obj.test = async () => {
+    let res = await htp.setting().get(
+        '/test'
+    );
+
+    return res.data;
+}
+
+module.exports = obj;

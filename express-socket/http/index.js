@@ -2,16 +2,21 @@ const axios = require('axios');
 
 // axios 인스턴스 생성
 const http = axios.create({
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: 'http://127.0.0.1:8000/api',
     // headers: { "content-type": "application/json" }
 });
 
-const setting = (accessToken) => {
+const htp = {};
+
+htp.setting = (accessToken) => {
     http.interceptors.request.use(
         function (config) {
     
             config.headers["Content-Type"] = "application/json; charset=utf-8";
-            config.headers["Authorization"] = `Bearer ${accessToken}`;
+            
+            if (accessToken) {
+                config.headers["Authorization"] = `Bearer ${accessToken}`;
+            }
     
             return config;
         }, 
@@ -25,4 +30,4 @@ const setting = (accessToken) => {
 }
 
 
-module.exports = { setting };
+module.exports = htp;
