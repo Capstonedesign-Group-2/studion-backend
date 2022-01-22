@@ -29,9 +29,11 @@ obj.enterRoom = async (token, roomId, data) => {
 }
 
 obj.updateRoom = async (token, roomId, data) => {
-    let res = await htp.setting(token).patch(
-        `/rooms/update/${roomId}`,
-        data
+    let res = await htp.setting(token).post(
+        `/rooms/update/${roomId}`, {
+            data,
+            _method: 'patch'
+        }
     );
 
     return res.data;
@@ -50,14 +52,6 @@ obj.destoryRoom = async (token, roomId, userId) => {
     let res = await htp.setting(token).delete(
         `/rooms/destory/${roomId}`,
         { data: { user_id: userId }}
-    );
-
-    return res.data;
-}
-
-obj.test = async () => {
-    let res = await htp.setting().get(
-        '/test'
     );
 
     return res.data;
