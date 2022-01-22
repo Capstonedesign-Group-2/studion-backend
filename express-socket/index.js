@@ -36,7 +36,6 @@ io.on('connection', socket => {
         // promise가 반환되기때문에
         // 동기처리를 해줘야 데이터가
         // 제대로 넘어온다.
-        // 하루걸림
         func = async() => {
             res = await obj.roomList();
 
@@ -72,17 +71,24 @@ io.on('connection', socket => {
                 return;
             }
 
-            users[roomID].push({id: socket.id, name: data.name});
+            users[roomID].push({id: socket.id, name: data.name, user_id: data.data.user_id});
             
             socketToRoom[socket.id] = roomID;
-            
             socket.join(roomID);
-    
+            
+            // 사용자가 페이지 새로고침시 users 변수에 값이 누적되지 않게 동일한 사용자의 socket.id 값을 삭제한다.
+            for(let num in users) {
+
+                // 사용자 이름이 같으면서, 기존소켓아이디와 현재 소켓아이디가 다른 값이 있는지 찾아낸다.
+                if(users[num]['user_id'] == data.data.user_id && users[num]['id'] != socket.id) {
+                    // users의 해당 순서의 값을 삭제한다.
+                    users.splice(num, 1);
+                }
+            }
+
             const usersInThisRoom = users[roomID].filter(user => user.id !== socket.id);
     
-            console.log(usersInThisRoom);
-        
-            socket.to(roomID).emit('all_users', res);
+            socket.to(roomID).emit('all_users', usersInThisRoom);
         }
 
         func();
@@ -100,7 +106,9 @@ io.on('connection', socket => {
             
             if (res.status === 'success') {
                 roomID = res.room.id;
-                users[roomID] = [{id: socket.id, name: data.name}];
+                users[roomID] = [{id: socket.id, name: data.name, user_id: data.data.creater}];
+                console.log(users);
+                console.log(users[roomID].length);
             } else {
                 socket.to(socket.id).emit('error');
                 return;
@@ -109,16 +117,31 @@ io.on('connection', socket => {
             socketToRoom[socket.id] = roomID;
         
             socket.join(roomID);
-            console.log(roomID);
-            const usersInThisRoom = users[roomID].filter(user => user.id !== socket.id);
 
-            console.log(usersInThisRoom);
-    
-            io.sockets.to(socket.id).emit('all_users', res);
+            io.sockets.to(socket.id).emit('create_room_on', res);
         }
         
         func();
     })
+
+    socket.on('update', data => {
+        // data set
+        // token: token
+        // roomId: room_id
+        // data: 방 수정할 때 data set
+        func = async() => {
+            res = await obj.updateRoom(data.token, data.roomId, data.data);
+            
+            if (res.status === 'success') {
+                socket.to(data.roomId).emit('update_on', res);
+            } else {
+                socket.to(socket.id).emit('error');
+                return;
+            }
+        }
+
+        func();
+    });
 
     // webRTC 시그널링
     socket.on('offer', data => {
@@ -144,27 +167,42 @@ io.on('connection', socket => {
     });
 
     // 방 퇴장
-    socket.on('exit_room', () => {
+    socket.on('exit_room', data => {
         const roomID = socketToRoom[socket.id];
         let room = users[roomID];
 
-        res = obj.exitRoom(data.token, data.roomId);
+        // data set
+        // token: token
+        // roomId: roomId
+        // userId: userId
+        func = async() => {
+            res = await obj.exitRoom(data.token, data.roomId, data.userId);
 
-        if (res.data.status !== 'success') {
-            return;
-        }
-
-        if (room) {
-            room = room.filter(user => user.id != socket.id);
-            users[roomID] = room; 
-            socket.leave(roomID);
-            if (room.length === 0) {
-                delete users[roomID];
+            if (res.status === 'success') {
+                room = room.filter(user => user.id != socket.id);
+                users[roomID] = room; 
+                socket.leave(roomID);
+            } else {
+                socket.to(socket.id).emit('error');
                 return;
-            }  
-        }
+            }
 
-        socket.to(roomID).emit('user_exit', {id: socket.id});
+            if (room.length === 0) {
+                res = await obj.destoryRoom(data.token, data.roomId, data.userId);
+                
+                if (res.status === 'success') {
+                    delete users[roomID];
+                    return;
+                } else {
+                    socket.to(socket.id).emit('error');
+                    return;
+                }
+            }  
+
+            socket.to(roomID).emit('user_exit', {id: socket.id});
+        } 
+
+        func();
     });
 
     socket.on('disconnect', () => {
