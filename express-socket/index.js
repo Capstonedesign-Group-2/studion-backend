@@ -42,53 +42,83 @@ io.on('connection', socket => {
 
             io.emit('show_on', res);
         }
-
+        
         func();
+        
     });
 
-    console.log('room connection');
+    console.log('room connection ' + socket.id);
     // 방 입장
     socket.on('join_room', data => {
         // data set 
-        // token: 토큰, data: room만들때 데이터, name: user_name,
-        // room: room_id -> 방이 있을 시에만,
-        // flag: 1 or 0 -> 1이면 방 입장, 0이면 방 만들고 입장
-        // 만들어진 방 입장 시
-        let res;
-        if (data.flag) {
-            roomID = data.room;
-            const length = users[roomID].length;
+        // token: 토큰, 
+        // name: user_name,
+        // data: 들어갈 때 필요한 데이터
+        // room: room_id 
+        
+        roomID = data.room;
+        const length = users[roomID].length;
 
-            if (length === maximum) {
-                socket.to(socket.id).emit('room_full');
+        if (length === maximum) {
+            socket.to(socket.id).emit('room_full');
+            return;
+        }
+
+        func = async() => {
+            res = await obj.enterRoom(data.token, roomID, data.data) 
+
+            if (res.status !== 'success') {
+                socket.to(socket.id).emit('error');
                 return;
             }
 
             users[roomID].push({id: socket.id, name: data.name});
-        } else {
-            // 방 만들고 입장 시
-            res = obj.createRoom(data.token, data.data);
-            console.log(res.data);
+            
+            socketToRoom[socket.id] = roomID;
+            
+            socket.join(roomID);
+    
+            const usersInThisRoom = users[roomID].filter(user => user.id !== socket.id);
+    
+            console.log(usersInThisRoom);
+        
+            socket.to(roomID).emit('all_users', res);
+        }
 
-            if (res.data.status === 'success') {
-                roomID = res.data.room.id;  
+        func();
+    });
+    // 방 만들기
+    socket.on('create_room', data => {
+        // data set 
+        // token: 토큰, 
+        // data: room만들때 데이터, 
+        // name: user_name,
+        func = async() => {
+            res = await obj.createRoom(data.token, data.data);
+
+            console.log(res);
+            
+            if (res.status === 'success') {
+                roomID = res.room.id;
                 users[roomID] = [{id: socket.id, name: data.name}];
             } else {
                 socket.to(socket.id).emit('error');
                 return;
             }
-        }
-        console.log('join_room 3')
-        socketToRoom[socket.id] = roomID;
+
+            socketToRoom[socket.id] = roomID;
         
-        socket.join(roomID);
+            socket.join(roomID);
+            console.log(roomID);
+            const usersInThisRoom = users[roomID].filter(user => user.id !== socket.id);
 
-        const usersInThisRoom = users[roomID].filter(user => user.id !== socket.id);
-
-        console.log(usersInThisRoom);
+            console.log(usersInThisRoom);
     
-        io.sockets.to(socket.id).emit('all_users', res.data);
-    });
+            io.sockets.to(socket.id).emit('all_users', res);
+        }
+        
+        func();
+    })
 
     // webRTC 시그널링
     socket.on('offer', data => {

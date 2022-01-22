@@ -7,7 +7,7 @@ obj.createRoom = async (token, data) => {
         '/rooms/create',
         data
     );
-    console.log(res.data);
+    
     return res.data;
 }
 
