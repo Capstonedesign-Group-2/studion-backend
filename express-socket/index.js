@@ -92,6 +92,15 @@ io.on('connection', socket => {
         }
 
         func();
+
+        // 실시간으로 방 목록 갱신
+        func = async() => {
+            res = await obj.roomList();
+
+            io.emit('show_on', res);
+        }
+        
+        func();
     });
     // 방 만들기
     socket.on('create_room', data => {
@@ -122,6 +131,15 @@ io.on('connection', socket => {
         }
         
         func();
+
+        // 실시간으로 방 목록 갱신
+        func = async() => {
+            res = await obj.roomList();
+
+            io.emit('show_on', res);
+        }
+        
+        func();
     })
 
     socket.on('update', data => {
@@ -140,6 +158,15 @@ io.on('connection', socket => {
             }
         }
 
+        func();
+
+        // 실시간으로 방 목록 갱신
+        func = async() => {
+            res = await obj.roomList();
+
+            io.emit('show_on', res);
+        }
+        
         func();
     });
 
@@ -187,7 +214,12 @@ io.on('connection', socket => {
                 return;
             }
 
+            // 방 폭파
             if (room.length === 0) {
+                // data set
+                // token: token
+                // roomId: roomId
+                // userId: userId
                 res = await obj.destoryRoom(data.token, data.roomId, data.userId);
                 
                 if (res.status === 'success') {
@@ -202,6 +234,15 @@ io.on('connection', socket => {
             socket.to(roomID).emit('user_exit', {id: socket.id});
         } 
 
+        func();
+
+        // 실시간으로 방 목록 갱신
+        func = async() => {
+            res = await obj.roomList();
+
+            io.emit('show_on', res);
+        }
+        
         func();
     });
 
