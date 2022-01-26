@@ -3,7 +3,6 @@
 use App\Http\Controllers\JWTAuthController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
-use Namshi\JOSE\Signer\OpenSSL\RSA;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +50,15 @@ Route::middleware(['cors'])->group(function() {
             Route::patch("/update/{room_id}", [RoomController::class, 'update']);
             Route::delete("/destory/{room_id}", [RoomController::class, 'destory']);
             Route::delete("/exit/{room_id}", [RoomController::class, 'exit']);
+        });
+    });
+
+    Route::prefix("chats")->group(function () {
+        // token이 필요없는 route
+
+        // token이 필요한 route
+        Route::group(['middleware' => 'auth:api'], function () {
+
         });
     });
 
