@@ -166,15 +166,35 @@ class RoomController extends Controller
             ], 200);
         }
 
+
         $room = Room::find($room_id);
+        $users = Chat_user::where('room_id', $room_id)->get();
+
+
+        if ($users->count() == $room->max) {
+            return response()->json([
+                'status' => 'error',
+                'message' => '방 인원이 초과되었습니다.',
+            ], 200);
+        }
 
         if ($room->locked) {
             if ($room->password != $req->password) {
                 return response()->json([
                     'status' => 'error',
                     'message' => '비밀번호를 다시 입력해주세요.',
-                ]);
+                ], 200);
             }
+        }
+
+        // 새로고침 시 원래 있는 인원의 경우 요청 무시
+        $userInRoom = Chat_user::where('user_id', $req->user_id)->where('room_id', $room_id)->get();
+
+        if ($userInRoom->count() != 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => '이미 들어와있습니다.'
+            ], 200);
         }
 
         $user = new Chat_user();

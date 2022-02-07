@@ -43,7 +43,7 @@ room.on('connection', socket => {
             const length = users[roomID].length;
             
             if (length === maximum) {
-                socket.to(socket.id).emit('room_full');
+                io.to(socket.id).emit('room_full');
                 return;
             }
 
@@ -66,7 +66,7 @@ room.on('connection', socket => {
         socket.join(roomID);
         console.log(`[${socketToRoom[socket.id]}]: ${socket.id} enter`)
 
-        const usersInThisRoom = users[data.room].filter(user => user.id !== socket.id);;
+        const usersInThisRoom = users[data.room].filter(user => user.id !== socket.id);
         console.log(usersInThisRoom);
         
         io.in(roomID).emit('all_users', usersInThisRoom);

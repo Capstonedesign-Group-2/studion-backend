@@ -67,10 +67,11 @@ class JWTAuthController extends Controller
 
     protected function respondWithToken($token, $email) {
         $user_id = User::where('email', $email)->first()->id;
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 360,
+            'expires_in' => auth('api')->factory()->getTTL() * 360000,
             'loginSuccess' => true,
             'userId' => $user_id,
         ], 200);
@@ -87,5 +88,20 @@ class JWTAuthController extends Controller
             'status' => 'success',
             'message' => 'logout'
         ], 200);
+    }
+
+    public function myRoom(Request $req) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->toJson(),
+            ], 200);
+        }
+
+
     }
 }
