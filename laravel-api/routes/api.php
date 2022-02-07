@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\JWTAuthController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
@@ -64,10 +65,14 @@ Route::middleware(['cors'])->group(function() {
 
     Route::prefix("posts")->group(function () {
         // token이 필요없는 route
+        Route::get("/show", [PostController::class, 'show']);
+        Route::get("/detail/{post_id}", [PostController::class, 'detail']);
 
         // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
-
+            Route::post("/create", [PostController::class, 'create']);
+            Route::patch("/update/{post_id}", [PostController::class, 'update']);
+            Route::delete("/destory/{post_id}", [PostController::class, 'destory']);
         });
     });
 

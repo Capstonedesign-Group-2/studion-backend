@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chat_user;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -102,6 +103,11 @@ class JWTAuthController extends Controller
             ], 200);
         }
 
+        // 내가 포함된 함주실 정보와 합주실 인원들까지
+        // chat_user, room, user 테이블 이용
+        // chat_user에 user_id로 합주실 알아내고
+        // 합주실의 관계정의로 데이터를 가져온다.
+        $room_id = Chat_user::where('user_id', $req->user_id)->where('flag', 0)->first();
 
     }
 }
