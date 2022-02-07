@@ -5,8 +5,8 @@ const cors = require('cors');
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
     cors: {
-        origin: '*',
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST"],
+        origin: ['http://localhost:3000'],
     }
 });
 
@@ -29,111 +29,90 @@ const room = io.of('/room');
 const chat = io.of('/chat');
 
 // room socket 연결
-room.on('connection', socket => {
-    console.log('room connection ' + socket.id);
-
-    // 방 입장
+io.on('connection', socket => {
     socket.on('join_room', data => {
-        // data set 
-        // name: user_name,
-        // room: room_id 
-        
-        roomID = data.room;
-        if (users[roomID]) {
-            const length = users[roomID].length;
-            
+        if (users[data.room]) {
+            const length = users[data.room].length;
             if (length === maximum) {
-                io.to(socket.id).emit('room_full');
+                socket.to(socket.id).emit('room_full');
                 return;
             }
-
-            users[roomID].push({id: socket.id, name: data.name, user_id: data.user_id});
+            users[data.room].push({ id: socket.id, name: data.name, user_id: data.user_id });
         } else {
-            users[roomID] = [{id: socket.id, name: data.name, user_id: data.user_id}]
+            users[data.room] = [{ id: socket.id, name: data.name, user_id: data.user_id }];
         }
+        socketToRoom[socket.id] = data.room;
 
-        // 사용자가 페이지 새로고침시 users 변수에 값이 누적되지 않게 동일한 사용자의 socket.id 값을 삭제한다.
-        for(let i = 0; i < users[roomID].length; i++) {
-            // 사용자 고유번호가 같으면서, 기존소켓아이디와 현재 소켓아이디가 다른 값이 있는지 찾아낸다.
-            if(users[roomID][i].user_id == data.user_id && users[roomID][i].id != socket.id) {
-                // users의 해당 순서의 값을 삭제한다.
-                users[roomID].splice(i, 1);
-            }
-        }
-
-        socketToRoom[socket.id] = roomID;
-
-        socket.join(roomID);
-        console.log(`[${socketToRoom[socket.id]}]: ${socket.id} enter`)
+        socket.join(data.room);
+        console.log(`[${socketToRoom[socket.id]}]: ${socket.id} enter`);
 
         const usersInThisRoom = users[data.room].filter(user => user.id !== socket.id);
-        console.log(usersInThisRoom);
-        
-        io.in(roomID).emit('all_users', usersInThisRoom);
+
+        console.log('usersInThisRoom', usersInThisRoom);
+
+        io.sockets.to(socket.id).emit('all_users', usersInThisRoom);
     });
-    
+
+    // 합주실 리스트 업데이트 알림
     socket.on('update_room_list', () => {
-        io.emit('update_room_list_on', {
-            msg: 'updated room list'
-        });
+        console.log('[ON] update_room_list');
+        io.emit('update_room_list_on');
     });
 
-    socket.on('update_room_setting', data => {
-        socket.to(data.room).emit('update_room_setting_on', {
-            msg: 'updated room setting'
-        });
-    });
+    // 합주실 내부에 있는 유저들에게 정보 업데이트 알림
+    socket.on('update_room_info', () => {
+        const roomID = socketToRoom[socket.id];
+        socket.to(roomID).emit('update_room_info_on');
+    })
 
-    // webRTC 시그널링
+    // 유저가 합주실을 나갔을 때
+    socket.on('exit_room', () => {
+        console.log('[ON] exit room', socket.id);
+        const roomID = socketToRoom[socket.id];
+        socket.to(roomID).emit('user_exit', { id: socket.id });
+    })
+
     socket.on('offer', data => {
+        //console.log(data.sdp);
         socket.to(data.offerReceiveID).emit('getOffer', {
             sdp: data.sdp,
             offerSendID: data.offerSendID,
-            offerSendEmail: data.offerSendEmail
+            offerSendName: data.offerSendName,
         });
     });
 
     socket.on('answer', data => {
-        socket.to(data.answerReceiveID).emit('getAnswer', {
-            sdp: data.sdp, 
-            answerSendID: data.answerSendID
-        });
+        //console.log(data.sdp);
+        socket.to(data.answerReceiveID).emit('getAnswer', { sdp: data.sdp, answerSendID: data.answerSendID });
     });
 
     socket.on('candidate', data => {
-        socket.to(data.candidateReceiveID).emit('getCandidate', {
-            candidate: data.candidate, 
-            candidateSendID: data.candidateSendID
-        });
-    });
+        //console.log(data.candidate);
+        socket.to(data.candidateReceiveID).emit('getCandidate', { candidate: data.candidate, candidateSendID: data.candidateSendID });
+    })
 
-    // 방 퇴장
-    socket.on('exit_room', () => {
+    // <<<<<<< HEAD
+    socket.on('disconnect', () => {
+        console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
         const roomID = socketToRoom[socket.id];
         let room = users[roomID];
-    
-        room = room.filter(user => user.id != socket.id);
-        users[roomID] = room; 
-        socket.leave(roomID);
-
-        // 방 폭파
-        if (room.length === 0) {
-            delete users[roomID];
-            return;
-        }  
-
-        socket.to(roomID).emit('user_exit', {id: socket.id});
-    });
-
-    socket.on('disconnect', () => {
-        console.log('room 연결해제')
-    });
+        if (room) {
+            room = room.filter(user => user.id !== socket.id);
+            users[roomID] = room;
+            if (room.length === 0) {
+                delete users[roomID];
+                return;
+            }
+        }
+        socket.to(roomID).emit('user_exit', { id: socket.id });
+        console.log('[disconnect]', users);
+    })
 });
 
 
 chat.on('connection', socket => {
     console.log('chat connection ' + socket.id);
-    
+
     socket.on('disconnect', () => {
         console.log('chat 연결해제')
     });
