@@ -1,0 +1,70 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Like;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class LikeController extends Controller
+{
+    // 좋아요
+    public function like(Request $req, $post_id) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 200);
+        }
+
+        $like = new Like();
+        $like->fill($req->all());
+        $like->post_id = $post_id;
+        $like->save();
+
+        return response()->json([
+            'status' => 'success',
+            'like' => $like
+        ], 200);
+    }
+
+    // 좋아요 해제
+    public function unLike(Request $req, $post_id) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 200);
+        }
+
+        $like = Like::where('user_id', $req->user_id)->where('post_id', $post_id)->first();
+        $like->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => '취소했습니다.',
+        ], 200);
+    }
+
+    // 특정 게시물에 좋아요 한 사람들
+    public function getLikes($post_id) {
+        $likes = Like::where('post_id', $post_id)->get();
+
+        for ($i = 0; $i < $likes->count(); $i++) {
+            $likes[$i]->user;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'likes' => $likes
+        ], 200);
+    }
+}

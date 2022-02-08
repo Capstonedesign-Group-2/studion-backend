@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\JWTAuthController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +74,17 @@ Route::middleware(['cors'])->group(function() {
             Route::post("/create", [PostController::class, 'create']);
             Route::patch("/update/{post_id}", [PostController::class, 'update']);
             Route::delete("/destory/{post_id}", [PostController::class, 'destory']);
+        });
+    });
+
+    Route::prefix("likes")->group(function () {
+        // token이 필요없는 route
+        Route::get('/get/{post_id}', [LikeController::class, 'getLikes']);
+
+        // token이 필요한 route
+        Route::group(['middleware' => 'auth:api'], function () {
+            Route::post('/like/{post_id}', [LikeController::class, 'like']);
+            Route::delete('/unlike/{post_id}', [LikeController::class, 'unLike']);
         });
     });
 
