@@ -38,7 +38,7 @@ class PostController extends Controller
         if($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'messages' => $validator->errors()->toJson()
+                'message' => $validator->errors()->toJson()
             ], 200);
         }
 
@@ -97,7 +97,7 @@ class PostController extends Controller
         if($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'messages' => $validator->errors()->toJson()
+                'message' => $validator->errors()->toJson()
             ], 200);
         }
 
@@ -133,7 +133,7 @@ class PostController extends Controller
         if($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'messages' => $validator->errors()->toJson()
+                'message' => $validator->errors()->toJson()
             ], 200);
         }
 
