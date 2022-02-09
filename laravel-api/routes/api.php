@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\JWTAuthController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
@@ -67,7 +68,6 @@ Route::middleware(['cors'])->group(function() {
     Route::prefix("posts")->group(function () {
         // token이 필요없는 route
         Route::get("/show", [PostController::class, 'show']);
-        Route::get("/detail/{post_id}", [PostController::class, 'detail']);
 
         // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
@@ -79,12 +79,25 @@ Route::middleware(['cors'])->group(function() {
 
     Route::prefix("likes")->group(function () {
         // token이 필요없는 route
-        Route::get('/get/{post_id}', [LikeController::class, 'getLikes']);
+        Route::get('/show/{post_id}', [LikeController::class, 'show']);
 
         // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
+            Route::get('/posts/{user_id}', [LikeController::class, 'likeToPosts']);
             Route::post('/like/{post_id}', [LikeController::class, 'like']);
             Route::delete('/unlike/{post_id}', [LikeController::class, 'unLike']);
+        });
+    });
+
+    Route::prefix("comments")->group(function () {
+        // token이 필요없는 route
+        Route::get('/show/{post_id}', [CommentController::class, 'show']);
+
+        // token이 필요한 route
+        Route::group(['middleware' => 'auth:api'], function () {
+            Route::post('/create', [CommentController::class, 'create']);
+            Route::patch('/update/{comment_id}', [CommentController::class, 'update']);
+            Route::delete('/destory/{comment_id}', [CommentController::class, 'destory']);
         });
     });
 

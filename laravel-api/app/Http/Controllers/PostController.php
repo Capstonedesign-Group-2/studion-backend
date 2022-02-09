@@ -75,18 +75,6 @@ class PostController extends Controller
         ], 200);
     }
 
-    public function detail($post_id) {
-        // 상세보기 시 댓글과 같이 제공
-        $post = Post::find($post_id);
-
-        $post->comments;
-
-        return response()->json([
-            'status' => 'success',
-            'post' => $post
-        ], 200);
-    }
-
     public function update(Request $req, $post_id) {
         $validator = Validator::make($req->all(), [
             'user_id' => 'required|integer',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Like;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -55,7 +56,7 @@ class LikeController extends Controller
     }
 
     // 특정 게시물에 좋아요 한 사람들
-    public function getLikes($post_id) {
+    public function show($post_id) {
         $likes = Like::where('post_id', $post_id)->get();
 
         for ($i = 0; $i < $likes->count(); $i++) {
@@ -65,6 +66,20 @@ class LikeController extends Controller
         return response()->json([
             'status' => 'success',
             'likes' => $likes
+        ], 200);
+    }
+
+    // 본인이 좋아요 한 게시물들
+    public function likeToPosts($user_id) {
+        $likes = Like::where('user_id', $user_id)->get();
+
+        for ($i = 0; $i < $likes->count(); $i++) {
+            $likes[$i]->post->user;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'likeToPosts' => $likes
         ], 200);
     }
 }
