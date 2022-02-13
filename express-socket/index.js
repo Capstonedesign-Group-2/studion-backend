@@ -37,7 +37,19 @@ io.on('connection', socket => {
                 socket.to(socket.id).emit('room_full');
                 return;
             }
-            users[data.room].push({ id: socket.id, name: data.name, user_id: data.user_id });
+
+            // disconnect가 안됬을때 같은 유저가 들어오는 것을 방지
+            let num = 0;
+            for (let i = 0; i < users[data.room].length; i++) {
+                if (users[data.room][i].id === socket.id) {
+                    num++;
+                    break;
+                }
+            }
+
+            if (num === 0) {
+                users[data.room].push({ id: socket.id, name: data.name, user_id: data.user_id });
+            }
         } else {
             users[data.room] = [{ id: socket.id, name: data.name, user_id: data.user_id }];
         }
@@ -69,6 +81,15 @@ io.on('connection', socket => {
     socket.on('exit_room', () => {
         console.log('[ON] exit room', socket.id);
         const roomID = socketToRoom[socket.id];
+        let room = users[roomID];
+        if (room) {
+            room = room.filter(user => user.id !== socket.id);
+            users[roomID] = room;
+            if (room.length === 0) {
+                delete users[roomID];
+                return;
+            }
+        }
         socket.to(roomID).emit('user_exit', { id: socket.id });
     })
 
@@ -90,8 +111,6 @@ io.on('connection', socket => {
         //console.log(data.candidate);
         socket.to(data.candidateReceiveID).emit('getCandidate', { candidate: data.candidate, candidateSendID: data.candidateSendID });
     })
-
-    // <<<<<<< HEAD
     socket.on('disconnect', () => {
         console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
         const roomID = socketToRoom[socket.id];
