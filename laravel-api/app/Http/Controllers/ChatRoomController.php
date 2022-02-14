@@ -19,7 +19,7 @@ class ChatRoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $chat = new Chat_room();
@@ -40,7 +40,7 @@ class ChatRoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         Chat_user::where('user_id', $req->user_id)->where('flag', 1)->get();

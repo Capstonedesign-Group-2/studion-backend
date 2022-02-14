@@ -19,7 +19,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $comment = new Comment();
@@ -55,7 +55,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $comment = Comment::find($comment_id);
@@ -64,7 +64,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '작성자가 아닙니다.'
-            ], 200);
+            ], 401);
         }
 
         $comment->fill($req->all());
@@ -85,7 +85,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $comment = Comment::find($comment_id);
@@ -94,7 +94,7 @@ class CommentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '작성자가 아닙니다.'
-            ], 200);
+            ], 401);
         }
 
         $comment->delete();
@@ -102,7 +102,7 @@ class CommentController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => '삭제되었습니다.'
-        ]);
+        ], 200);
     }
 
 

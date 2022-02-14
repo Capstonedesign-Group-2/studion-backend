@@ -25,18 +25,13 @@ class JWTAuthController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $user = new User();
         $user->fill($req->all());
         $user->password = bcrypt($req->password);
         $user->save();
-
-        // return response()->json([
-        //     'status' => 'success',
-        //     'data' => $user
-        // ], 200);
 
         if (!$token = auth('api')->attempt(['email' => $req->email, 'password' => $req->password])) {
             return response()->json(['error' => 'Unuthorized'], 401);
@@ -55,7 +50,7 @@ class JWTAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $validator->errors()->toJson(),
-            ], 200);
+            ], 422);
         }
 
         $credentials = $req->all();
@@ -100,7 +95,7 @@ class JWTAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $validator->errors()->toJson(),
-            ], 200);
+            ], 422);
         }
 
         // 내가 포함된 함주실 정보와 합주실 인원들까지

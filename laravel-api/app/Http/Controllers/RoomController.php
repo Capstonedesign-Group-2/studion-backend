@@ -22,7 +22,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         // 방 만들기
@@ -38,14 +38,14 @@ class RoomController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => '비밀번호를 지워주세요'
-                ]);
+                ], 412);
             }
         } else {
             if (!isset($password)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => '비밀번호를 입력해주세요'
-                ]);
+                ], 412);
             }
         }
 
@@ -101,7 +101,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $room = Room::find($room_id);
@@ -111,7 +111,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '작성자가 아닙니다.'
-            ], 200);
+            ], 401);
         }
 
         $room->fill($req->all());
@@ -132,7 +132,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $room = Room::find($room_id);
@@ -142,7 +142,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '작성자가 아닙니다.'
-            ], 200);
+            ], 401);
         }
 
         $room->delete();
@@ -163,7 +163,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
 
@@ -175,7 +175,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '방 인원이 초과되었습니다.',
-            ], 200);
+            ], 406);
         }
 
         if ($room->locked) {
@@ -183,7 +183,7 @@ class RoomController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => '비밀번호를 다시 입력해주세요.',
-                ], 200);
+                ], 400);
             }
         }
 
@@ -194,7 +194,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '이미 들어와있습니다.'
-            ], 200);
+            ], 400);
         }
 
         $user = new Chat_user();
@@ -219,7 +219,7 @@ class RoomController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         Chat_user::where('user_id', $req->user_id)->where('room_id', $room_id)

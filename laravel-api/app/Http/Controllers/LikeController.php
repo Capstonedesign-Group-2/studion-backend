@@ -19,7 +19,7 @@ class LikeController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $like = new Like();
@@ -43,7 +43,7 @@ class LikeController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $like = Like::where('user_id', $req->user_id)->where('post_id', $post_id)->first();

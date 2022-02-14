@@ -39,7 +39,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $post = new Post();
@@ -86,7 +86,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $post = Post::find($post_id);
@@ -95,7 +95,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '작성자가 아닙니다.'
-            ], 200);
+            ], 401);
         }
 
 
@@ -122,7 +122,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->toJson()
-            ], 200);
+            ], 422);
         }
 
         $post = Post::find($post_id);
@@ -131,7 +131,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => '작성자가 아닙니다.'
-            ], 200);
+            ], 401);
         }
 
         // 파일 삭제하고 게시판 삭제
