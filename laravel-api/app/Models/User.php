@@ -67,6 +67,10 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Audio::class);
     }
 
+    public function images() {
+        return $this->hasMany(Image::class);
+    }
+
     public function chat_user() {
         return $this->hasOne(Chat_user::class);
     }

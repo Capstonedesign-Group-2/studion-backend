@@ -28,6 +28,10 @@ class Post extends Model
         return $this->hasMany(Audio::class);
     }
 
+    public function images() {
+        return $this->hasMany(Image::class);
+    }
+
     public function tags() {
         return $this->hasMany(Tag::class);
     }

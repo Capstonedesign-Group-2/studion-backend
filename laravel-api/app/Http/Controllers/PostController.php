@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Audio;
+use App\Models\Image;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -11,28 +13,37 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
-    public function uploadFile($req) {
+    public function uploadFile($req, $file) {
         // 이름에 시간 넣기
-        $name = $req->file('image')->getClientOriginalName();
-        $extension = $req->file('image')->extension();
+        $name = $req->file($file)->getClientOriginalName();
+        $extension = $req->file($file)->extension();
         $nameWithoutExtension = Str::of($name)->basename('.' . $extension);
         $fileName = $nameWithoutExtension . '_' . time() . '.' . $extension;
 
-        $req->file('image')->storeAs('image', $fileName, 's3');
+        $req->file($file)->storeAs($file, $fileName, 's3');
 
-        return Storage::disk('s3')->url('image/' . $fileName);
+        if ($file == 'image') $saveFile = new Image();
+        else if ($file == 'audio') $saveFile = new Audio();
+
+        $saveFile->user_id = $req->user_id;
+        $saveFile->post_id = $req->post_id;
+        $saveFile->link = Storage::disk('s3')->url($file . '/' . $fileName);
+        $saveFile->save();
     }
 
-    public function deleteFile($fileUrl) {
-        $fileName = substr($fileUrl, strpos($fileUrl, 'image'));
-        Storage::disk('s3')->delete($fileName);
+    public function deleteFile($fileUrls, $file) {
+        for ($i = 0; $i < $fileUrls->count(); $i++) {
+            $fileName = substr($fileUrls[$i]->link, strpos($fileUrls[$i]->link, $file));
+            Storage::disk('s3')->delete($fileName);
+            $fileUrls[$i]->delete();
+        }
+
     }
 
     public function create(Request $req) {
         $validator = Validator::make($req->all(), [
             'user_id' => 'required|integer',
             'content' => 'required|string',
-            'image' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048'
         ]);
 
         if($validator->fails()) {
@@ -46,12 +57,22 @@ class PostController extends Controller
         $post->fill($req->all());
         $post->title = User::find($req->user_id)->name;
         $post->flag = 0;
+        $post->save();
+
+        $req->post_id = $post->id;
 
         if (isset($req->image)) {
-            $post->image = $this->uploadFile($req);
+            $file = 'image';
+            $this->uploadFile($req, $file);
+            $post->images;
         }
 
-        $post->save();
+        if (isset($req->audio)) {
+            $file = 'audio';
+            $this->uploadFile($req, $file);
+            $post->audios;
+        }
+
 
         return response()->json([
             'status' => 'success',
@@ -67,6 +88,8 @@ class PostController extends Controller
 
         for ($i = 0; $i < $posts->count(); $i++) {
             $posts[$i]->user;
+            $posts[$i]->images;
+            $posts[$i]->audios;
         }
 
         return response()->json([
@@ -79,7 +102,6 @@ class PostController extends Controller
         $validator = Validator::make($req->all(), [
             'user_id' => 'required|integer',
             'content' => 'required|string',
-            'image' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048'
         ]);
 
         if($validator->fails()) {
@@ -98,14 +120,27 @@ class PostController extends Controller
             ], 401);
         }
 
+        $post->fill($req->all());
+        $post->save();
 
+        // 삭제 할 땐 각각의 model객체 넘겨줄 것
         if (isset($req->image)) {
-            $this->deleteFile($post->image);
-            $post->fill($req->all());
-            $post->image = $this->uploadFile($req);
+            $file = 'image';
+            $images = Image::where('post_id', $post->id)->get();
+            $this->deleteFile($images, $file);
+
+            $this->uploadFile($req, $file);
+            $post->images;
         }
 
-        $post->save();
+        if (isset($req->audio)) {
+            $file = 'audio';
+            $audios = Audio::where('post_id', $post->id)->get();
+            $this->deleteFile($audios, $file);
+
+            $this->uploadFile($req, $file);
+            $post->audios;
+        }
 
         return response()->json([
             'status' => 'success',
@@ -135,8 +170,16 @@ class PostController extends Controller
         }
 
         // 파일 삭제하고 게시판 삭제
-        if (isset($post->image)) {
-            $this->deleteFile($post->image);
+        if ($post->images->count() != 0) {
+            $file = 'image';
+            $images = Image::where('post_id', $post->id)->get();
+            $this->deleteFile($images, $file);
+        }
+
+        if ($post->audios->count() != 0) {
+            $file = 'audio';
+            $audios = Audio::where('post_id', $post->id)->get();
+            $this->deleteFile($audios, $file);
         }
 
         $post->delete();
