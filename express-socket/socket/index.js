@@ -15,7 +15,13 @@ module.exports = {
 
         // room socket 연결
         io.on('connection', async (socket) => {
-            await redisApi.test('test', 'test value');
+            let res = await redisApi.test('studion', 'roomId_1', {
+                name: 'joon',
+                date: 0216,
+                roomID: 1,
+                msg: 'hello'
+            });
+            console.log(res);
             socket.on('join_room', data => {
                 if (users[data.room]) {
                     const length = users[data.room].length;
@@ -117,7 +123,7 @@ module.exports = {
 
         chat.on('connection', socket => {
             console.log('chat connection ' + socket.id);
-
+        
             socket.on('disconnect', () => {
                 console.log('chat 연결해제')
             });
