@@ -1,3 +1,5 @@
+const redisApi = require('../api/redisRoom.js');
+
 module.exports = {
     start: (io) => {
         let users = {};
@@ -12,7 +14,8 @@ module.exports = {
         const chat = io.of('/chat');
 
         // room socket 연결
-        io.on('connection', socket => {
+        io.on('connection', async (socket) => {
+            await redisApi.test('test', 'test value');
             socket.on('join_room', data => {
                 if (users[data.room]) {
                     const length = users[data.room].length;

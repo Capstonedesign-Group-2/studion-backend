@@ -4,16 +4,10 @@ const app = express();
 const cors = require('cors');
 const server = http.createServer(app);
 const io = require('socket.io')(server);
-// const io = require('socket.io')(server, {
-//     cors: {
-//         methods: ["GET", "POST"],
-//         origin: ['*'],
-//     }
-// });
-
-// const obj = require('./api/Room.js');
+const dotenv = require('dotenv');
 
 app.use(cors());
+dotenv.config();
 
 // start socket server 
 const ioServer = require('./socket/index.js');
