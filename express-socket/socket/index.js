@@ -4,6 +4,8 @@ module.exports = {
     start: (io) => {
         let users = {};
         let socketToRoom = {};
+        let roomCount = 0;
+        
         // let roomID;
         // let res;
         // let func;
@@ -12,17 +14,16 @@ module.exports = {
 
         const room = io.of('/room');
         const chat = io.of('/chat');
-
+        
         // room socket 연결
         io.on('connection', async (socket) => {
-            let res = await redisApi.test('studion', 'roomId_1', {
-                name: 'joon',
-                date: 0216,
-                roomID: 1,
-                msg: 'hello'
+            socket.on('get_room_list', async (data) => {
+                let res = await redisApi.getRoomList();
+                console.log(res);
+                socket.to(socket.id).emit('get_room_list_on', res);
             });
-            console.log(res);
-            socket.on('join_room', data => {
+
+            socket.on('join_room', async (data) => {
                 if (users[data.room]) {
                     const length = users[data.room].length;
                     if (length === maximum) {
@@ -43,7 +44,23 @@ module.exports = {
                         users[data.room].push({ id: socket.id, name: data.name, user_id: data.user_id });
                     }
                 } else {
-                    users[data.room] = [{ id: socket.id, name: data.name, user_id: data.user_id }];
+                    // data set
+                    let room = {
+                        room: 'room' + ++roomCount,
+                        creater: 'joon' + roomCount,
+                        title: 'room' + roomCount,
+                        content: 'room content' + roomCount,
+                        max: 4,
+                        locked: 0
+                        // locked: 1시 password 까지
+                    }
+
+                    let res = await redisApi.createRoom(room.room, room);
+                    if (res) {
+                        users[data.room] = [{ id: socket.id, name: data.name, user_id: data.user_id }];
+                    } else {
+                        return;
+                    }
                 }
                 socketToRoom[socket.id] = data.room;
 
