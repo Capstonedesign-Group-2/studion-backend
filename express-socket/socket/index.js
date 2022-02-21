@@ -17,17 +17,23 @@ module.exports = {
         
         // room socket 연결
         io.on('connection', async (socket) => {
-            socket.on('get_room_list', async (data) => {
+            socket.on('get_room_list', async () => {
                 let res = await redisApi.getRoomList();
                 console.log(res);
-                socket.to(socket.id).emit('get_room_list_on', res);
+                io.to(socket.id).emit('get_room_list_on', res);
+            });
+
+            socket.on('get_room_user', async (data) => {
+                let res = await redisApi.getRoomUser(data.room);
+                console.log(res);
+                io.to(socket.id).emit('get_room_user_on', res);
             });
 
             socket.on('join_room', async (data) => {
                 if (users[data.room]) {
                     const length = users[data.room].length;
                     if (length === maximum) {
-                        socket.to(socket.id).emit('room_full');
+                        io.to(socket.id).emit('room_full');
                         return;
                     }
 
@@ -43,24 +49,49 @@ module.exports = {
                     if (num === 0) {
                         users[data.room].push({ id: socket.id, name: data.name, user_id: data.user_id });
                     }
+
+                    // hash: room.room, key: room.creater, data set 
+                    let join = {
+                        user: {
+                            id: 1,
+                            name: 'joon',
+                            email: 'joon@naver.com',
+                            image: null,
+                        },
+                        room: 'room1'
+                        
+                    };
+                    
+                    join.user['socket_id'] = socket.id;
+                    await redisApi.joinRoom(join.room, join.user.name, join.user);
+                    
                 } else {
-                    // data set
+                    // hash: studion, key: room.room, data set
                     let room = {
                         room: 'room' + ++roomCount,
                         creater: 'joon' + roomCount,
                         title: 'room' + roomCount,
-                        content: 'room content' + roomCount,
+                        content: 'set room content' + roomCount,
                         max: 4,
                         locked: 0
-                        // locked: 1시 password 까지
+                        // locked: 1이면 password 까지
                     }
 
-                    let res = await redisApi.createRoom(room.room, room);
-                    if (res) {
-                        users[data.room] = [{ id: socket.id, name: data.name, user_id: data.user_id }];
-                    } else {
-                        return;
-                    }
+                    await redisApi.createRoom(room.room, room);
+                
+                    // hash: room.room, key: room.creater, data set 
+                    let joinUser = {
+                        id: 1,
+                        name: 'joon',
+                        email: 'joon@naver.com',
+                        image: null,
+                    };
+                    
+                    joinUser['socket_id'] = socket.id;
+
+                    await redisApi.joinRoom(room.room, joinUser.name, joinUser);
+                    
+                    users[data.room] = [{ id: socket.id, name: data.name, user_id: data.user_id }];
                 }
                 socketToRoom[socket.id] = data.room;
 

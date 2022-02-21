@@ -9,10 +9,10 @@ let client = null;
     client = await connection();
 })();
 
-redisApi.test = async (key, value) => {
+redisApi.test = async (hash, key, value) => {
     
-    // await client.hSet(key, JSON.stringify(value));
-    // let res = await client.hGet(key);
+    // await client.hSet(hash, key, JSON.stringify(value));
+    // let res = await client.hGet(hash, key);
     // let res = await client.hGetAll(hash);
     let res = JSON.parse(JSON.stringify(await client.hGetAll(roomHash)));
     let keys = await client.hKeys(roomHash);
@@ -32,7 +32,7 @@ redisApi.getRoomList = async () => {
         for (i = 0; i < keys.length; i++) {
             res[keys[i]] = JSON.parse(res[keys[i]]);
         }
-    
+        
         return res;
     } catch (e) {
         console.log(e)
@@ -61,11 +61,32 @@ redisApi.createRoom = async (key, value) => {
     }
 }
 
-redisApi.joinRoom = async (key, value) => {
-
+redisApi.getRoomUser = async (hash) => {
+    try {
+        let res = JSON.parse(JSON.stringify(await client.hGetAll(hash)));
+        let keys = await client.hKeys(hash);
+    
+        for (i = 0; i < keys.length; i++) {
+            res[keys[i]] = JSON.parse(res[keys[i]]);
+        }
+    
+        return res;
+    } catch (e) {
+        console.log(e);
+    }
 }
 
-redisApi.exitRoom = async (key, value) => {
+redisApi.joinRoom = async (hash, key, value) => {
+    try {
+        let res = await client.hSet(hash, key, JSON.stringify(value), client.print);
+        
+        return res;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+redisApi.exitRoom = async (hash, key, value) => {
 
 }
 
