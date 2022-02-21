@@ -17,6 +17,8 @@ module.exports = {
         
         // room socket 연결
         io.on('connection', async (socket) => {
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// test용
             socket.on('get_room_list', async () => {
                 let res = await redisApi.getRoomList();
                 console.log(res);
@@ -29,6 +31,18 @@ module.exports = {
                 io.to(socket.id).emit('get_room_user_on', res);
             });
 
+            socket.on('exit_room', async (data) => {
+                let res = await redisApi.exitRoom(data.room, data.name);
+                console.log('socket room exit', res);
+                io.sockets.to(socket.id).emit('exit_room_on', res);
+            });
+
+            socket.on('destory_room', async (data) => {
+                let res = await redisApi.destoryRoom(data.room);
+                console.log('socket destory room', res);
+                io.sockets.to(socket.id).emit('destory_room_on', res);
+            });
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             socket.on('join_room', async (data) => {
                 if (users[data.room]) {
                     const length = users[data.room].length;
