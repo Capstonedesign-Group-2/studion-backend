@@ -24,6 +24,16 @@ redisApi.test = async (hash, key, value) => {
     return res;
 }
 
+redisApi.getRoomCount = async () => {
+    try {
+        let keys = await client.hKeys(roomHash);
+
+        return keys.length;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 redisApi.getRoomList = async () => {
     try {
         let res = JSON.parse(JSON.stringify(await client.hGetAll(roomHash)));
@@ -78,10 +88,10 @@ redisApi.createRoom = async (key, value) => {
     }
 
     try {
-        let res = await client.hSet(roomHash, key, JSON.stringify(value), client.print);
+        let res = await client.hSet(roomHash, key, JSON.stringify(value.room), client.print);
         
         if (res) {
-            let status = this.joinRoom(key, value.creater, value.user);
+            let status = this.joinRoom(key, value.user.socket_id, value.user);
             
             return status;
         }
