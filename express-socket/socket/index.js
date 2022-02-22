@@ -159,6 +159,16 @@ module.exports = {
                 socket.to(roomID).emit('user_exit', { id: socket.id });
             })
 
+            socket.on('send_msg', data => {
+                // data = {
+                //     name: 'joon',
+                //     image: null,
+                //     msg: 'hello'
+                // }
+                const roomID = socketToRoom[socket.id];
+                socket.to(roomID).emit('send_msg_on', data);
+            });
+
             socket.on('offer', data => {
                 //console.log(data.sdp);
                 socket.to(data.offerReceiveID).emit('getOffer', {
@@ -176,7 +186,8 @@ module.exports = {
             socket.on('candidate', data => {
                 //console.log(data.candidate);
                 socket.to(data.candidateReceiveID).emit('getCandidate', { candidate: data.candidate, candidateSendID: data.candidateSendID });
-            })
+            });
+
             socket.on('disconnect', () => {
                 console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
                 const roomID = socketToRoom[socket.id];
@@ -199,7 +210,7 @@ module.exports = {
                 }
                 socket.to(roomID).emit('user_exit', { id: socket.id });
                 console.log('[disconnect]', users);
-            })
+            });
         });
 
 
@@ -209,6 +220,6 @@ module.exports = {
             socket.on('disconnect', () => {
                 console.log('chat 연결해제')
             });
-        })
+        });
     }
 }
