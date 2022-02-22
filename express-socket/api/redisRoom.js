@@ -33,8 +33,7 @@ redisApi.getRoomList = async () => {
             res[keys[i]] = JSON.parse(res[keys[i]]);
             let userRes = JSON.parse(JSON.stringify(await client.hGetAll(keys[i])));
             let userKeys = await client.hKeys(keys[i]);
-            console.log(keys[i]);
-            console.log(userKeys);
+            
             let arr = new Array();
             for (j = 0; j < userKeys.length; j++) {
                 arr.push(JSON.parse(userRes[userKeys[j]]));
