@@ -76,7 +76,7 @@ module.exports = {
                         
                     // };
                     
-                    join.user['socket_id'] = socket.id;
+                    // join.user['socket_id'] = socket.id;
                     // await redisApi.joinRoom(join.room, join.user.name, join.user);
                     
                 } else {
