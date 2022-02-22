@@ -136,7 +136,7 @@ module.exports = {
             })
 
             // 유저가 합주실을 나갔을 때
-            socket.on('exit_room', () => {
+            socket.on('exit_room', async () => {
                 console.log('[ON] exit room', socket.id);
                 const roomID = socketToRoom[socket.id];
                 let room = users[roomID];
@@ -188,7 +188,7 @@ module.exports = {
                 socket.to(data.candidateReceiveID).emit('getCandidate', { candidate: data.candidate, candidateSendID: data.candidateSendID });
             });
 
-            socket.on('disconnect', () => {
+            socket.on('disconnect', async () => {
                 console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
                 const roomID = socketToRoom[socket.id];
                 let room = users[roomID];
