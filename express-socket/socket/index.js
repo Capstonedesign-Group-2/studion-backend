@@ -1,6 +1,8 @@
 const redisApi = require('../api/redisRoom.js');
 
 module.exports = {
+    // join, create event 나눔
+    // 룸 정보는 socket이랑 redis 삭제안함 리스트보여줄때 length 0 빼기
     start: async (io) => {
         let users = {};
         let socketToRoom = {};
@@ -34,15 +36,6 @@ module.exports = {
                 io.to(socket.id).emit('get_room_user_on', res);
             });
 
-            // 특정 방 정보보기
-            socket.on('get_room', async (data) => {
-                // data: 'room1' -> room_id 
-                let res = await redisApi.getRoom(data);
-
-                console.log(res);
-                io.to(socket.id).emit('get_room_on', res);
-            })
-
             // test용
             socket.on('exit_room', async (data) => {
                 let res = await redisApi.exitRoom(data.room, data.name);
@@ -57,6 +50,24 @@ module.exports = {
                 io.sockets.to(socket.id).emit('destory_room_on', res);
             });
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            socket.on('create_room', async (data) => {
+                // hash: studion, key: data.room.id, value: data 
+                    // data = {
+                    //     creater: 'joon' -> user_name
+                    //     title: 'good' 
+                    //     content: 'set room content'
+                    //     max: 4
+                    //     locked: 0
+                    //     // locked: 1이면 password 까지
+                    // }
+                let roomCount = redisApi.getRoomCount();
+                data['id'] = 'room' + roomCount;
+                    
+                await redisApi.createRoom(data.id, data);
+                
+                io.to(socket.id).emit('create_room_on', data);
+            });
+
             socket.on('join_room', async (data) => {
                 // data = {
                 //     user: {
@@ -65,12 +76,10 @@ module.exports = {
                 //         email: 'joon@naver.com',
                 //         image: null,
                 //     },
-                //     room: {
-                //         id: room1
-                //     } 
+                //     room_id: 'room1'
                 // };
-                if (users[data.room.id]) {
-                    const length = users[data.room.id].length;
+                if (users[data.room_id]) {
+                    const length = users[data.room_id].length;
                     if (length === maximum) {
                         io.to(socket.id).emit('room_full');
                         return;
@@ -78,58 +87,31 @@ module.exports = {
 
                     // disconnect가 안됬을때 같은 유저가 들어오는 것을 방지
                     let num = 0;
-                    for (let i = 0; i < users[data.room.id].length; i++) {
-                        if (users[data.room.id][i].id === socket.id) {
+                    for (let i = 0; i < users[data.room_id].length; i++) {
+                        if (users[data.room_id][i].id === socket.id) {
                             num++;
                             break;
                         }
                     }
 
                     if (num === 0) {
-                        users[data.room.id].push({ id: socket.id, name: data.user.name, user_id: data.user.id });
+                        users[data.room_id].push({ id: socket.id, name: data.user.name, user_id: data.user.id });
                     }
-
-                    data.user['socket_id'] = socket.id;
-                    // hash: room_id, key: socket_id, value: user_data 
-                    await redisApi.joinRoom(data.room.id, data.user.socket_id, data.user);
-                    
                 } else {
-                    // hash: studion, key: data.room.id, value: data 
-                    // data = {
-                    //     room: {
-                    //         creater: 'joon' -> user_name
-                    //         title: 'good' 
-                    //         content: 'set room content'
-                    //         max: 4
-                    //         locked: 0
-                    //     }
-                    //     // locked: 1이면 password 까지
-                    //     user: {
-                    //          id: 1,
-                    //          name: 'joon',
-                    //          email: 'joon@naver.com',
-                    //          image: null
-                    //      }
-                    // }
-                    let roomCount = redisApi.getRoomCount();
-                    data.room['id'] = 'room' + roomCount;
-                    data.user['socket_id'] = socket.id;
-                    
-                    await redisApi.createRoom(data.room.id, data);
-                
-                    users[data.room.id] = [{ id: socket.id, name: data.user.name, user_id: data.user.id }];
+                    users[data.room_id] = [{ id: socket.id, name: data.user.name, user_id: data.user.id }];
                 }
-                socketToRoom[socket.id] = data.room.id;
-
-                socket.join(data.room.id);
+                socketToRoom[socket.id] = data.room_id;
+                data.user['socket_id'] = socket.id;
+                // hash: room_id, key: socket_id, value: user_data 
+                await redisApi.joinRoom(data.room_id, socket.id, data.user);
+                socket.join(data.room_id);
                 console.log(`[${socketToRoom[socket.id]}]: ${socket.id} enter`);
 
-                const usersInThisRoom = users[data.room.id].filter(user => user.id !== socket.id);
+                const usersInThisRoom = users[data.room_id].filter(user => user.id !== socket.id);
 
                 console.log('usersInThisRoom', usersInThisRoom);
 
                 io.sockets.to(socket.id).emit('all_users', usersInThisRoom);
-                io.sockets.to(socket.id).emit('get_room_id_on', data.room.id);
             });
 
             // 합주실 리스트 업데이트 알림
@@ -156,14 +138,14 @@ module.exports = {
                         users[roomID] = room;
                         socket.leave(roomID);
                     }
-                    if (room.length === 0) {
-                        let res = await redisApi.destoryRoom(roomID);
-                        if (res) {
-                            delete users[roomID];
-                            socket.leave(roomID);
-                            return;
-                        }
-                    }
+                    // if (room.length === 0) {
+                    //     let res = await redisApi.destoryRoom(roomID);
+                    //     if (res) {
+                    //         delete users[roomID];
+                    //         socket.leave(roomID);
+                    //         return;
+                    //     }
+                    // }
                 }
                 socket.to(roomID).emit('user_exit', { id: socket.id });
             })
@@ -208,14 +190,14 @@ module.exports = {
                         users[roomID] = room;
                         socket.leave(roomID);
                     }
-                    if (room.length === 0) {
-                        let res = await redisApi.destoryRoom(roomID);
-                        if (res) {
-                            delete users[roomID];
-                            socket.leave(roomID);
-                            return;
-                        }
-                    }
+                    // if (room.length === 0) {
+                    //     let res = await redisApi.destoryRoom(roomID);
+                    //     if (res) {
+                    //         delete users[roomID];
+                    //         socket.leave(roomID);
+                    //         return;
+                    //     }
+                    // }
                 }
                 socket.to(roomID).emit('user_exit', { id: socket.id });
                 console.log('[disconnect]', users);

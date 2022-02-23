@@ -38,21 +38,27 @@ redisApi.getRoomList = async () => {
     try {
         let res = JSON.parse(JSON.stringify(await client.hGetAll(roomHash)));
         let keys = await client.hKeys(roomHash);
-    
-        for (i = 0; i < keys.length; i++) {
-            res[keys[i]] = JSON.parse(res[keys[i]]);
-            let userRes = JSON.parse(JSON.stringify(await client.hGetAll(keys[i])));
-            let userKeys = await client.hKeys(keys[i]);
-            
-            let arr = new Array();
-            for (j = 0; j < userKeys.length; j++) {
-                arr.push(JSON.parse(userRes[userKeys[j]]));
-            }
+        let obj = {};
+        console.log(keys)
 
-            res[keys[i]]['users'] = arr;
+        for (i = 0; i < keys.length; i++) {
+            let userKeys = await client.hKeys(keys[i]);
+            if (userKeys.length !== 0) {
+                res[keys[i]] = JSON.parse(res[keys[i]]);
+                let userRes = JSON.parse(JSON.stringify(await client.hGetAll(keys[i])));
+                let arr = new Array();
+     
+                for (j = 0; j < userKeys.length; j++) {
+                    arr.push(JSON.parse(userRes[userKeys[j]]));
+                }
+    
+                res[keys[i]]['users'] = arr;
+    
+                obj[keys[i]] = res[keys[i]];
+            }
         }
 
-        return res;
+        return obj;
     } catch (e) {
         console.log(e)
     }
@@ -73,16 +79,6 @@ redisApi.getRoomUser = async (hash) => {
     }
 }
 
-redisApi.getRoom = async (key) => {
-    try {
-        let res = await client.hGet(roomHash, key);
-
-        return JSON.parse(res);
-    } catch (e) {
-        console.log(e)
-    }
-}
-
 redisApi.createRoom = async (key, value) => {
     // data set
     // room -> roomID 이건 Backend에서 만듬
@@ -98,13 +94,9 @@ redisApi.createRoom = async (key, value) => {
     }
 
     try {
-        let res = await client.hSet(roomHash, key, JSON.stringify(value.room), client.print);
+        let res = await client.hSet(roomHash, key, JSON.stringify(value), client.print);
         
-        if (res) {
-            let status = this.joinRoom(key, value.user.socket_id, value.user);
-            
-            return status;
-        }
+        return res;
     } catch (e) {
         console.log(e);
     }
