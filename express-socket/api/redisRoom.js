@@ -73,6 +73,16 @@ redisApi.getRoomUser = async (hash) => {
     }
 }
 
+redisApi.getRoom = async (key) => {
+    try {
+        let res = await client.hGet(roomHash, key);
+
+        return JSON.parse(res);
+    } catch (e) {
+        console.log(e)
+    }
+}
+
 redisApi.createRoom = async (key, value) => {
     // data set
     // room -> roomID 이건 Backend에서 만듬

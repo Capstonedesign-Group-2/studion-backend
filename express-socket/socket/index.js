@@ -34,6 +34,15 @@ module.exports = {
                 io.to(socket.id).emit('get_room_user_on', res);
             });
 
+            // 특정 방 정보보기
+            socket.on('get_room', async (data) => {
+                // data: 'room1' -> room_id 
+                let res = await redisApi.getRoom(data);
+
+                console.log(res);
+                io.to(socket.id).emit('get_room_on', res);
+            })
+
             // test용
             socket.on('exit_room', async (data) => {
                 let res = await redisApi.exitRoom(data.room, data.name);
