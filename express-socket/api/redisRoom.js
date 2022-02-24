@@ -38,7 +38,8 @@ redisApi.getRoomList = async () => {
     try {
         let res = JSON.parse(JSON.stringify(await client.hGetAll(roomHash)));
         let keys = await client.hKeys(roomHash);
-        let obj = new Array();
+        let obj = {};
+        obj['rooms'] = new Array();
         console.log(keys)
 
         for (i = 0; i < keys.length; i++) {
@@ -55,7 +56,7 @@ redisApi.getRoomList = async () => {
                 res[keys[i]]['users'] = arr;
     
                 // obj[keys[i]] = res[keys[i]];
-                obj.push(res[keys[i]]);
+                obj['rooms'].push(res[keys[i]]);
             }
         }
 
