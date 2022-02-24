@@ -38,7 +38,7 @@ redisApi.getRoomList = async () => {
     try {
         let res = JSON.parse(JSON.stringify(await client.hGetAll(roomHash)));
         let keys = await client.hKeys(roomHash);
-        let obj = {};
+        let obj = new Array();
         console.log(keys)
 
         for (i = 0; i < keys.length; i++) {
@@ -54,7 +54,8 @@ redisApi.getRoomList = async () => {
     
                 res[keys[i]]['users'] = arr;
     
-                obj[keys[i]] = res[keys[i]];
+                // obj[keys[i]] = res[keys[i]];
+                obj.push(res[keys[i]]);
             }
         }
 
@@ -80,15 +81,6 @@ redisApi.getRoomUser = async (hash) => {
 }
 
 redisApi.createRoom = async (key, value) => {
-    // data set
-    // room -> roomID 이건 Backend에서 만듬
-    // creater -> name 
-    // title -> room title
-    // content -> room content
-    // max -> room max people
-    // locked -> 0 or 1 
-    // password -> locked 1일 시
-    // user -> user객체(password제외)
     if (value.looked) {
         // password 작업...
     }

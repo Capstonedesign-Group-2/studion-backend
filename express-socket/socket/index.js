@@ -15,10 +15,9 @@ module.exports = {
 
         const room = io.of('/room');
         const chat = io.of('/chat');
-        
+
         // room socket 연결
         io.on('connection', async (socket) => {
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // room list 가져올 시 room 내부 사람들 정보도 가져옴
             socket.on('get_room_list', async () => {
                 let res = await redisApi.getRoomList();
@@ -36,20 +35,6 @@ module.exports = {
                 io.to(socket.id).emit('get_room_user_on', res);
             });
 
-            // test용
-            socket.on('exit_room', async (data) => {
-                let res = await redisApi.exitRoom(data.room, data.name);
-                console.log('socket room exit', res);
-                io.sockets.to(socket.id).emit('exit_room_on', res);
-            });
-
-            // test용
-            socket.on('destory_room', async (data) => {
-                let res = await redisApi.destoryRoom(data.room);
-                console.log('socket destory room', res);
-                io.sockets.to(socket.id).emit('destory_room_on', res);
-            });
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             socket.on('create_room', async (data) => {
                 // hash: studion, key: data.room.id, value: data 
                     // data = {
@@ -60,12 +45,29 @@ module.exports = {
                     //     locked: 0
                     //     // locked: 1이면 password 까지
                     // }
-                let roomCount = redisApi.getRoomCount();
-                data['id'] = 'room' + roomCount;
+                let roomCount = await redisApi.getRoomCount();
+                data['id'] = roomCount;
                     
                 await redisApi.createRoom(data.id, data);
                 
                 io.to(socket.id).emit('create_room_on', data);
+            });
+
+            socket.on('setting_room', async (data) => {
+                // hash: studion, key: data.room.id, value: data 
+                    // data = {
+                    //     id: 1
+                    //     creater: 'joon' -> user_name
+                    //     title: 'good' 
+                    //     content: 'set room content'
+                    //     max: 4
+                    //     locked: 0
+                    //     // locked: 1이면 password 까지
+                    // }
+                
+                await redisApi.createRoom(data.id, data);
+
+                socket.to(data.id).emit('update_room_info_on', data);
             });
 
             socket.on('join_room', async (data) => {
@@ -112,12 +114,16 @@ module.exports = {
                 console.log('usersInThisRoom', usersInThisRoom);
 
                 io.sockets.to(socket.id).emit('all_users', usersInThisRoom);
+
+                let res = await redisApi.getRoomList();
+                io.emit('update_room_list_on', res);
             });
 
             // 합주실 리스트 업데이트 알림
-            socket.on('update_room_list', () => {
+            socket.on('update_room_list', async () => {
                 console.log('[ON] update_room_list');
-                io.emit('update_room_list_on');
+                let res = await redisApi.getRoomList();
+                io.emit('update_room_list_on', res);
             });
 
             // 합주실 내부에 있는 유저들에게 정보 업데이트 알림
@@ -148,6 +154,8 @@ module.exports = {
                     // }
                 }
                 socket.to(roomID).emit('user_exit', { id: socket.id });
+                let res = await redisApi.getRoomList();
+                io.emit('update_room_list_on', res);
             })
 
             socket.on('send_msg', data => {
@@ -198,8 +206,10 @@ module.exports = {
                     //         return;
                     //     }
                     // }
+                    socket.to(roomID).emit('user_exit', { id: socket.id });
+                    let res = await redisApi.getRoomList();
+                    io.emit('update_room_list_on', res);
                 }
-                socket.to(roomID).emit('user_exit', { id: socket.id });
                 console.log('[disconnect]', users);
             });
         });
