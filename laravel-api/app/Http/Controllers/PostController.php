@@ -98,6 +98,22 @@ class PostController extends Controller
         ], 200);
     }
 
+    public function user_post($user_id) {
+        // 개인에 대한 게시글
+        $posts = Post::where('user_id', $user_id)->get();
+
+        for ($i = 0; $i < $posts->count(); $i++) {
+            $posts[$i]->user;
+            $posts[$i]->images;
+            $posts[$i]->audios;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'posts' => $posts
+        ], 200);
+    }
+
     public function update(Request $req, $post_id) {
         $validator = Validator::make($req->all(), [
             'user_id' => 'required|integer',
