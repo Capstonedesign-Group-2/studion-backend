@@ -207,8 +207,8 @@ module.exports = {
                     //     }
                     // }
                     socket.to(roomID).emit('user_exit', { id: socket.id });
-                    let res = await redisApi.getRoomList();
-                    io.emit('update_room_list_on', res);
+                    let rooms = await redisApi.getRoomList();
+                    io.emit('update_room_list_on', rooms);
                 }
                 console.log('[disconnect]', users);
             });
