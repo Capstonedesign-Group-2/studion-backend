@@ -56,15 +56,6 @@ Route::middleware(['cors'])->group(function() {
         });
     });
 
-    Route::prefix("chats")->group(function () {
-        // token이 필요없는 route
-
-        // token이 필요한 route
-        Route::group(['middleware' => 'auth:api'], function () {
-
-        });
-    });
-
     Route::prefix("posts")->group(function () {
         // token이 필요없는 route
         Route::get("/show", [PostController::class, 'show']);

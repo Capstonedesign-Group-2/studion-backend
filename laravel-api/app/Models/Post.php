@@ -39,4 +39,8 @@ class Post extends Model
     public function likes() {
         return $this->hasMany(Like::class);
     }
+
+    public function getCreatedAtFormattedAttribute() {
+        return $this->created_at->format('H:i d, M Y');
+    }
 }

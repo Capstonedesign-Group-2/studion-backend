@@ -21,4 +21,8 @@ class Like extends Model
     public function user() {
         return $this->belongsTo(User::class);
     }
+
+    public function getCreatedAtFormattedAttribute() {
+        return $this->created_at->format('H:i d, M Y');
+    }
 }

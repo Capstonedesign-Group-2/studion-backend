@@ -51,6 +51,10 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    public function getCreatedAtFormattedAttribute() {
+        return $this->created_at->format('H:i d, M Y');
+    }
+
     public function room() {
         return $this->hasOne(Room::class);
     }

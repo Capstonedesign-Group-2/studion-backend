@@ -22,4 +22,8 @@ class Image extends Model
     public function post() {
         return $this->belongsTo(Post::class);
     }
+
+    public function getCreatedAtFormattedAttribute() {
+        return $this->created_at->format('H:i d, M Y');
+    }
 }

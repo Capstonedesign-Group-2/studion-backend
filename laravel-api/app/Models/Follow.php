@@ -13,4 +13,8 @@ class Follow extends Model
         'follower',
         'following',
     ];
+
+    public function getCreatedAtFormattedAttribute() {
+        return $this->created_at->format('H:i d, M Y');
+    }
 }
