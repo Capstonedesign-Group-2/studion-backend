@@ -93,6 +93,7 @@ redisApi.getRoomInfo = async (key) => {
             arr.push(JSON.parse(users[keys[i]]));
         }
         res['users'] = arr;
+        
         return res;
     } catch (e) {
         console.log(e);

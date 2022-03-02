@@ -130,7 +130,7 @@ module.exports = {
             socket.on('update_room_info', async (data) => {
                 let res = await redisApi.getRoomInfo(data.id);
                 io.to(data.id).emit('update_room_info_on', res);
-                let res = await redisApi.getRoomList();
+                res = await redisApi.getRoomList();
                 io.emit('update_room_list_on', res);
             })
 
