@@ -66,8 +66,8 @@ module.exports = {
                     // }
                 
                 await redisApi.createRoom(data.id, data);
-
-                socket.to(data.id).emit('update_room_info_on', data);
+                let res = await redisApi.getRoomInfo(data.id);
+                io.to(data.id).emit('update_room_info_on', res);
             });
 
             socket.on('join_room', async (data) => {
@@ -127,9 +127,11 @@ module.exports = {
             });
 
             // 합주실 내부에 있는 유저들에게 정보 업데이트 알림
-            socket.on('update_room_info', () => {
+            socket.on('update_room_info', async (data) => {
                 const roomID = socketToRoom[socket.id];
-                socket.to(roomID).emit('update_room_info_on');
+                let res = await redisApi.getRoomInfo(data.id);
+                // socket.to(roomID).emit('update_room_info_on', res);
+                io.emit('update_room_info_on', res);
             })
 
             // 유저가 합주실을 나갔을 때
