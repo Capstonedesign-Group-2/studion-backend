@@ -128,9 +128,7 @@ module.exports = {
 
             // 합주실 내부에 있는 유저들에게 정보 업데이트 알림
             socket.on('update_room_info', async (data) => {
-                const roomID = socketToRoom[socket.id];
                 let res = await redisApi.getRoomInfo(data.id);
-                // socket.to(roomID).emit('update_room_info_on', res);
                 io.emit('update_room_info_on', res);
             })
 
