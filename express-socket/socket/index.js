@@ -129,7 +129,9 @@ module.exports = {
             // 합주실 내부에 있는 유저들에게 정보 업데이트 알림
             socket.on('update_room_info', async (data) => {
                 let res = await redisApi.getRoomInfo(data.id);
-                io.emit('update_room_info_on', res);
+                io.to(data.id).emit('update_room_info_on', res);
+                let res = await redisApi.getRoomList();
+                io.emit('update_room_list_on', res);
             })
 
             // 유저가 합주실을 나갔을 때
