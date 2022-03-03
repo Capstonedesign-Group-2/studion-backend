@@ -37,22 +37,56 @@ redisApi.getRoomCount = async () => {
 redisApi.getRoomList = async () => {
     try {
         let res = JSON.parse(JSON.stringify(await client.hGetAll(roomHash)));
-        // console.log(res, ' / list 1')
         let keys = await client.hKeys(roomHash);
-        // console.log(keys, ' / list 2');
         let obj = {};
         obj['rooms'] = new Array();
 
         for (i = 0; i < keys.length; i++) {
-            // console.log(i, keys.length, keys[i], '/ list 3');
             let userKeys = await client.hKeys(keys[i]);
-            // console.log(userKeys, userKeys.length, '/ list 4')
+            
             if (userKeys.length !== 0) {
                 res[keys[i]] = JSON.parse(res[keys[i]]);
-                // console.log(res[keys[i]], '/ list 5')
-                // console.log(await client.hGetAll(keys[i]), '/ list 6')
                 let userRes = JSON.parse(JSON.stringify(await client.hGetAll(keys[i])));
-                // console.log(userRes, '/ list 7')
+                
+                if (Object.keys(userRes).length === 0) {
+                    continue;
+                }
+
+                let arr = new Array();
+     
+                for (j = 0; j < userKeys.length; j++) {
+                    arr.push(JSON.parse(userRes[userKeys[j]]));
+                }
+    
+                res[keys[i]]['users'] = arr;
+                obj['rooms'].push(res[keys[i]]);
+            }
+        }
+
+        return obj;
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+redisApi.getRooms = async () => {
+    try {
+        let res = JSON.parse(JSON.stringify(await client.hGetAll(roomHash)));
+        let keys = await client.hKeys(roomHash);
+        let obj = {};
+        obj['rooms'] = new Array();
+
+        for (i = 0; i < keys.length; i++) {
+            let userKeys = await client.hKeys(keys[i]);
+            
+            if (userKeys.length !== 0) {
+                res[keys[i]] = JSON.parse(res[keys[i]]);
+                let userRes = JSON.parse(JSON.stringify(await client.hGetAll(keys[i])));
+                
+                if (Object.keys(userRes).length === 0) {
+                    continue;
+                }
+               
                 let arr = new Array();
      
                 for (j = 0; j < userKeys.length; j++) {

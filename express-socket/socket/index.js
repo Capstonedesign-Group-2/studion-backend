@@ -132,7 +132,13 @@ module.exports = {
             socket.on('get_room_info', async (data) => {
                 let res = await redisApi.getRoomInfo(data.id);
                 io.to(data.id).emit('update_room_info_on', res);
-            })
+            });
+
+            // 시작 시 합주실 리스트 가져오기
+            socket.on('get_rooms', async (data) => {
+                let res = await redisApi.getRooms();
+                io.to(socket.id).emit('get_rooms_on', res);
+            });
 
             // 유저가 합주실을 나갔을 때
             socket.on('exit_room', async () => {
@@ -157,7 +163,7 @@ module.exports = {
                 }
                 socket.to(roomID).emit('user_exit', { id: socket.id });
                 let res = await redisApi.getRoomList();
-                io.emit('update_room_list_on', res);
+                socket.broadcast.emit('update_room_list_on', res);
             })
 
             socket.on('send_msg', data => {
@@ -210,7 +216,7 @@ module.exports = {
                     // }
                     socket.to(roomID).emit('user_exit', { id: socket.id });
                     let rooms = await redisApi.getRoomList();
-                    io.emit('update_room_list_on', rooms);
+                    socket.broadcast.emit('update_room_list_on', rooms);
                 }
                 console.log('[disconnect]', users);
             });
