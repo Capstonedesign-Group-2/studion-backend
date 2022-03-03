@@ -59,6 +59,10 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Room::class);
     }
 
+    public function composers() {
+        return $this->hasMany(Composer::class);
+    }
+
     public function posts() {
         return $this->hasMany(Post::class);
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Audio;
+use App\Models\Composer;
 use App\Models\Image;
 use App\Models\Post;
 use App\Models\User;
@@ -29,6 +30,10 @@ class PostController extends Controller
         $saveFile->post_id = $req->post_id;
         $saveFile->link = Storage::disk('s3')->url($file . '/' . $fileName);
         $saveFile->save();
+
+        if ($file == 'audio') {
+            $this->createComposer($req, $saveFile->id);
+        }
     }
 
     public function deleteFile($fileUrls, $file) {
@@ -38,6 +43,15 @@ class PostController extends Controller
             $fileUrls[$i]->delete();
         }
 
+    }
+
+    public function createComposer($req, $audio_id) {
+        for ($i = 0; $i < count($req->composers); $i++) {
+            $composer = new Composer();
+            $composer->user_id = $req->composers[$i];
+            $composer->audio_id = $audio_id;
+            $composer->save();
+        }
     }
 
     public function create(Request $req) {
@@ -71,6 +85,9 @@ class PostController extends Controller
             $file = 'audio';
             $this->uploadFile($req, $file);
             $post->audios;
+            for ($i = 0; $i < $post->audios->count(); $i++) {
+                $post->audios[$i]->composers;
+            }
         }
 
 
@@ -89,10 +106,20 @@ class PostController extends Controller
         for ($i = 0; $i < $posts->count(); $i++) {
             $posts[$i]->user;
             $posts[$i]->images;
-            $posts[$i]->audios;
+            $posts[$i]->audios = $posts[$i]->audios()->get();
+            for ($j = 0; $j < $posts[$i]->audios->count(); $j++) {
+                $posts[$i]->audios[$j]->composers;
+            }
             $posts[$i]->comments = $posts[$i]->comments()->orderBy('created_at', 'desc')->paginate(20);
+            for ($j = 0; $j < $posts[$i]->comments->count(); $j++) {
+                $posts[$i]->comments[$j]->created = $posts[$i]->comments[$j]->created_at_formatted;
+            }
+
             $posts[$i]->likes = $posts[$i]->likes()->orderBy('created_at', 'desc')->paginate(20);
-            // $posts[$i]->created_at = $posts[$i]->created_at_formatted;
+            for ($j = 0; $j < $posts[$i]->likes->count(); $j++) {
+                $posts[$i]->likes[$j]->created = $posts[$i]->likes[$j]->created_at_formatted;
+            }
+            $posts[$i]->created = $posts[$i]->created_at_formatted;
         }
 
         // foreach($posts as $item) {
@@ -107,14 +134,26 @@ class PostController extends Controller
 
     public function user_post($user_id) {
         // 개인에 대한 게시글
-        $posts = Post::where('user_id', $user_id)->get();
+        $posts = Post::where('user_id', $user_id)->orderBy('created_at', 'desc')->paginate(15);
 
         for ($i = 0; $i < $posts->count(); $i++) {
             $posts[$i]->user;
             $posts[$i]->images;
-            $posts[$i]->audios;
-            $posts[$i]->comments;
-            $posts[$i]->likes;
+            $posts[$i]->audios = $posts[$i]->audios()->get();
+            for ($j = 0; $j < $posts[$i]->audios->count(); $j++) {
+                $posts[$i]->audios[$j]->composers;
+            }
+            $posts[$i]->comments = $posts[$i]->comments()->orderBy('created_at', 'desc')->paginate(20);
+            for ($j = 0; $j < $posts[$i]->comments->count(); $j++) {
+                $posts[$i]->comments[$j]->created = $posts[$i]->comments[$j]->created_at_formatted;
+            }
+
+            $posts[$i]->likes = $posts[$i]->likes()->orderBy('created_at', 'desc')->paginate(20);
+            for ($j = 0; $j < $posts[$i]->likes->count(); $j++) {
+                $posts[$i]->likes[$j]->created = $posts[$i]->likes[$j]->created_at_formatted;
+            }
+
+            $posts[$i]->created = $posts[$i]->created_at_formatted;
         }
 
         return response()->json([

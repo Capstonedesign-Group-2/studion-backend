@@ -25,6 +25,10 @@ class Audio extends Model
         return $this->belongsTo(Post::class);
     }
 
+    public function composers() {
+        return $this->hasMany(Composer::class);
+    }
+
     public function getCreatedAtFormattedAttribute() {
         return $this->created_at->format('H:i d, M Y');
     }
