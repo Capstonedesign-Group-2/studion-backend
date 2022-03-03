@@ -53,7 +53,7 @@ module.exports = {
                 io.to(socket.id).emit('create_room_on', data);
             });
 
-            socket.on('setting_room', async (data) => {
+            socket.on('update_room_info', async (data) => {
                 // hash: studion, key: data.room.id, value: data 
                     // data = {
                     //     id: 1
@@ -68,6 +68,8 @@ module.exports = {
                 await redisApi.createRoom(data.id, data);
                 let res = await redisApi.getRoomInfo(data.id);
                 io.to(data.id).emit('update_room_info_on', res);
+                res = await redisApi.getRoomList();
+                socket.broadcast.emit('update_room_list_on', res);
             });
 
             socket.on('join_room', async (data) => {
@@ -127,11 +129,9 @@ module.exports = {
             });
 
             // 합주실 내부에 있는 유저들에게 정보 업데이트 알림
-            socket.on('update_room_info', async (data) => {
+            socket.on('get_room_info', async (data) => {
                 let res = await redisApi.getRoomInfo(data.id);
                 io.to(data.id).emit('update_room_info_on', res);
-                res = await redisApi.getRoomList();
-                io.emit('update_room_list_on', res);
             })
 
             // 유저가 합주실을 나갔을 때
