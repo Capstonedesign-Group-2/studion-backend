@@ -156,6 +156,18 @@ redisApi.createRoom = async (key, value) => {
 
 redisApi.joinRoom = async (hash, key, value) => {
     try {
+        let users = JSON.parse(JSON.stringify(await client.hGetAll(hash)));
+        let keys = await client.hKeys(hash);
+        
+        for (i = 0; i < keys.length; i++) {
+            users[keys[i]] = JSON.parse(users[keys[i]]);
+
+            if (users[keys[i]].id === value.id) {
+                await client.hDel(hash, keys[i]);
+                break;
+            }
+        }
+
         let res = await client.hSet(hash, key, JSON.stringify(value), client.print);
         
         return res;
