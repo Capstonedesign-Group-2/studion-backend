@@ -1,4 +1,5 @@
 const redisApi = require('../api/redisRoom.js');
+const chat = require('./chat.js');
 
 module.exports = {
     // join, create event 나눔
@@ -13,8 +14,7 @@ module.exports = {
 
         const maximum = process.env.MAXIMUM || 4;
 
-        const room = io.of('/room');
-        const chat = io.of('/chat');
+        chat(io);
 
         // room socket 연결
         io.on('connection', async (socket) => {
@@ -219,15 +219,6 @@ module.exports = {
                     socket.broadcast.emit('update_room_list_on', rooms);
                 }
                 console.log('[disconnect]', users);
-            });
-        });
-
-
-        chat.on('connection', socket => {
-            console.log('chat connection ' + socket.id);
-        
-            socket.on('disconnect', () => {
-                console.log('chat 연결해제')
             });
         });
     }

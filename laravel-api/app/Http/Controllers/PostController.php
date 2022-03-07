@@ -101,7 +101,7 @@ class PostController extends Controller
         // 전체리스트 시 작성자 정보까지만
         // 댓글같은 경우 자세히보기 시 제공
         // 좋아요 수와 댓글 수 제공
-        $posts = Post::orderBy('created_at', 'desc')->paginate(15);
+        $posts = Post::orderBy('created_at', 'desc')->paginate(9);
 
         for ($i = 0; $i < $posts->count(); $i++) {
             $posts[$i]->user;
