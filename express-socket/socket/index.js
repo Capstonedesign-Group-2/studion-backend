@@ -1,5 +1,6 @@
 // const redisApi = require('../api/redisRoom.js');
 const chat = require('./chat.js');
+const cloneDeep = require("lodash.clonedeep");
 
 module.exports = {
     start: async (io) => {
@@ -9,31 +10,33 @@ module.exports = {
         let roomInfo = {
             rooms: []
         };
+
         let userToRoom = {};
         let roomCount = 1;
         
         let getList = () => {
             if (roomInfo.rooms.length === 0) return roomInfo;
-            let res = roomInfo;
-
+            let res = cloneDeep(roomInfo);
+            console.log(res, '/ roomInfo')
             for (let i = 0; i < res.rooms.length; i++) {
-                if (userToRoom[res.rooms[i].id]) {
+                if (userToRoom[res.rooms[i].id] && userToRoom[res.rooms[i].id].length !== 0) {
                     res.rooms[i].users = userToRoom[res.rooms[i].id];
                 } else {
                     res.rooms.splice(i, 1);
                     i--;
                 }
             }
-
+            console.log('getlist / ', res);
+            console.log('origin / ', roomInfo);
             return res;
         }
         let getInfo = (data) => {
-            let res = null;
+            let res = {};
 
             for (let i = 0; i < roomInfo.rooms.length; i++) {
                 if (roomInfo.rooms[i].id === data.id) {
-                    roomInfo.rooms[i] = data;
-                    res = roomInfo.rooms[i];
+                    if (data.flag) roomInfo.rooms[i] = data;
+                    res = cloneDeep(roomInfo.rooms[i]);
                     res.users = userToRoom[res.id];
                     break;
                 }
@@ -83,11 +86,7 @@ module.exports = {
                 data['id'] = roomCount;
                 roomCount++;
                 // await redisApi.createRoom(data.id, data);
-                if (roomCount['rooms']) {
-                    roomInfo['rooms'].push(data);
-                } else {
-                    roomInfo['rooms'] = [data];
-                }
+                roomInfo['rooms'].push(data);
                 
                 console.log(roomInfo);
                 io.to(socket.id).emit('create_room_on', data);
@@ -107,7 +106,8 @@ module.exports = {
                     // }
                 // await redisApi.createRoom(data.id, data);
                 // let res = await redisApi.getRoomInfo(data.id);
-                let res = getInfo(data);
+                
+                let res = getInfo(data, true);
 
                 io.to(data.id).emit('update_room_info_on', res);
                 // res = await redisApi.getRoomList();
