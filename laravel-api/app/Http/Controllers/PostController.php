@@ -107,18 +107,27 @@ class PostController extends Controller
             $posts[$i]->user;
             $posts[$i]->images;
             $posts[$i]->audios = $posts[$i]->audios()->get();
+
             for ($j = 0; $j < $posts[$i]->audios->count(); $j++) {
-                $posts[$i]->audios[$j]->composers;
+                $posts[$i]->audios[$j]->composers = $posts[$i]->audios[$j]->composers()->get();
+
+                for ($z = 0; $z < $posts[$i]->audios[$j]->composers->count(); $z++) {
+                    $posts[$i]->audios[$j]->composers[$z]->user;
+                }
             }
+
             $posts[$i]->comments = $posts[$i]->comments()->orderBy('created_at', 'desc')->paginate(20);
+
             for ($j = 0; $j < $posts[$i]->comments->count(); $j++) {
                 $posts[$i]->comments[$j]->created = $posts[$i]->comments[$j]->created_at_formatted;
             }
 
             $posts[$i]->likes = $posts[$i]->likes()->orderBy('created_at', 'desc')->paginate(20);
+
             for ($j = 0; $j < $posts[$i]->likes->count(); $j++) {
                 $posts[$i]->likes[$j]->created = $posts[$i]->likes[$j]->created_at_formatted;
             }
+
             $posts[$i]->created = $posts[$i]->created_at_formatted;
         }
 
@@ -140,15 +149,23 @@ class PostController extends Controller
             $posts[$i]->user;
             $posts[$i]->images;
             $posts[$i]->audios = $posts[$i]->audios()->get();
+
             for ($j = 0; $j < $posts[$i]->audios->count(); $j++) {
-                $posts[$i]->audios[$j]->composers;
+                $posts[$i]->audios[$j]->composers = $posts[$i]->audios[$j]->composers()->get();
+
+                for ($z = 0; $z < $posts[$i]->audios[$j]->composers->count(); $z++) {
+                    $posts[$i]->audios[$j]->composers[$z]->user;
+                }
             }
+
             $posts[$i]->comments = $posts[$i]->comments()->orderBy('created_at', 'desc')->paginate(20);
+
             for ($j = 0; $j < $posts[$i]->comments->count(); $j++) {
                 $posts[$i]->comments[$j]->created = $posts[$i]->comments[$j]->created_at_formatted;
             }
 
             $posts[$i]->likes = $posts[$i]->likes()->orderBy('created_at', 'desc')->paginate(20);
+
             for ($j = 0; $j < $posts[$i]->likes->count(); $j++) {
                 $posts[$i]->likes[$j]->created = $posts[$i]->likes[$j]->created_at_formatted;
             }

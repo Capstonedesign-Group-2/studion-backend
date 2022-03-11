@@ -30,11 +30,11 @@ module.exports = {
             console.log('origin / ', roomInfo);
             return res;
         }
-        let getInfo = (data, flag) => {
+        let getInfo = (id, flag) => {
             let res = {};
 
             for (let i = 0; i < roomInfo.rooms.length; i++) {
-                if (roomInfo.rooms[i].id === data.id) {
+                if (roomInfo.rooms[i].id === id) {
                     if (flag) roomInfo.rooms[i] = data;
                     res = cloneDeep(roomInfo.rooms[i]);
                     res.users = userToRoom[res.id];
@@ -107,7 +107,7 @@ module.exports = {
                 // await redisApi.createRoom(data.id, data);
                 // let res = await redisApi.getRoomInfo(data.id);
                 
-                let res = getInfo(data, true);
+                let res = getInfo(data.id, true);
 
                 io.to(data.id).emit('update_room_info_on', res);
                 // res = await redisApi.getRoomList();
@@ -187,7 +187,7 @@ module.exports = {
             // clear
             socket.on('get_room_info', async (data) => {
                 // let res = await redisApi.getRoomInfo(data.id);
-                let res = getInfo(data, false);
+                let res = getInfo(data.id, false);
                 io.to(data.id).emit('update_room_info_on', res);
             });
 
@@ -225,6 +225,8 @@ module.exports = {
                 socket.to(roomID).emit('user_exit', { id: socket.id });
                 let res = getList();
                 socket.broadcast.emit('update_room_list_on', res);
+                res = getInfo(roomID, false);
+                socket.to(roomID).emit('update_room_info_on', res);
             })
 
             socket.on('send_msg', data => {
