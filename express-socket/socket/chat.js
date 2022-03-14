@@ -1,12 +1,18 @@
-const redisApi = require('../api/redisRoom.js');
+const firebaseApi = require('../api/Chat.js');
 
-let init = (io) => {
+let init = async (io) => {
     let chat = io.of('/chat');
     chat['users'] = {};
 
     chat.on('connection', socket => {
         console.log('chat connection');
         console.log(`chat정보 ${socket.id}`);
+
+        socket.on('test', async () => {
+            console.log('test')
+            console.log('---------------');
+            console.log(res);
+        });
 
         socket.on('user_register', data => {
             //data set 
@@ -20,43 +26,113 @@ let init = (io) => {
 
             chat.to(socket.id).emit('user_register_on', {
                 msg: '등록이 완료되었습니다.',
-                id: chat.users
+                id: chat.users[data.id]
             });
 
             console.log(`들어온 사람 ${chat.users[data.id]}`);
         });
 
-        // 경우
-        // 상대방이 로그인안했을때 메시지 flag컬럼으로 표시하고 레디스에 저장
-        // 내가 소켓연결 끊으면 내가 보낸 메시지들 mysql로 옮기고 레디스 삭제
-        // 그렇다면 emit이 안된 메시지들 만약 내가 소켓 연결이 안끊겨있는데
-        // 상대방이 들어오면? 어떻게 되냐 당연 mysql에서 get해오고 
-        // mysql에 없는 것은 레디스에 저장되어있으니 list로 저장해서 시간 순서대로
-        // 같이 보낸다
-        // 이랬을때 소켓에서 api를 처리할까 아니면 프론트에서 api를 처리할까 
-        // 어처피 속도면에서 똑같다 차라리 이럴거면 걍 레디스에 때려박아도 되지않을까
-        // 문제는 flag컬럼으로 저장을 한다해도 레디스에 남아있던 상태에서 보내면 flag칼럼을
-        // 어찌해야될까 모든 메시지 get과 특정사람 메시지 get을 따라 만들어 관리
-        // 모든 메시지는 칼럼변경을 하지않고 특정사람 메시지는 칼럼변경을 한다.
-        // 여기서 모든 메시지를 get해왔을때도 mysql로 저장 및 레디스에서 삭제를 하면 개오바다.
-        // chat 소켓 연결 맨처음에만 get을 한다면 상관은 없긴하다.
-        // 그러면 결국 레디스에 어떻게 저장하느냐
-        // 넣은 순서대로 나와야하기때문에 list or sorted set인데
-        // ㅅㅂ 걍 로컬 데이터에 저장하고 싶다 그러면 안되는거 아니까 참는데 하...
-        // 특정 메시지 방을 나갔을때 그때 보낸 메시지를 mysql에 보낼까?
-        // 그냥 from to가 아니라 룸으로 특정짓고 from으로만 하면 편하긴하다.
-        // 내가 특정룸이라고 생각되니까 룸을 어떻게 지정할건가 소켓 상으론 걍 private message
-        // 데이터상에서만 룸으로 지정 그러면 이 룸을 어떻게 할건가
-        // firebase realtime database이용해보자
-        socket.on('send_msg', data => {
+        // 원하는 상대와 채팅 시작
+        // clear
+        // getChat 먼저 실행 후 없으면 할 것
+        socket.on('enter_room', async (data) => {
+            // data: [
+            //     {   
+            //         // 내정보
+            //         // user_id
+            //         // name
+            //         // image
+            //     },
+            //     {
+            //         // 상대정보
+            //         // user_id
+            //         // name
+            //         // image
+            //     }
+            // ]
+            try {
+                let res = await firebaseApi.setChat(data);
+                // 이미 있다면 res는 객체 없다면 단순 number id값
+                // 객체면 id 값 있는 걸로 getMessage하세요
+                chat.to(socket.id).emit('enter_room_on', res);
+            } catch (e) {
+                console.log(e)
+            }
+        });
+
+        // 메시지 보내기
+        // clear
+        socket.on('send_msg', async (data) => {
             // data = {
-                //     id: 1 -> user_id
-                //     name: 'joon',
-                //     image: null,
-                //     msg: 'hello'
-                // }
-            
-            socket.to(chat.users[data.id]).emit('send_msg_on', data);
+            //     id: 3, // 상대 user_id
+            //     room_id: 3, // 내 방 고유번호
+            //     msg: { // 나의 정보
+            //         user_id: 2,
+            //         name: 'dong',
+            //         image: null,
+            //         content: 'test3 socket',
+            //     }
+            // }
+            data.msg.timestamp = new Date().getTime();
+            data.msg.flag = 1;
+
+            if (chat.users[data.id]) {
+                socket.to(chat.users[data.id]).emit('send_msg_on', data.msg);
+            }
+
+            try {
+                firebaseApi.setMessage(data.room_id, data.msg);
+            } catch (e) {
+                console.log(e)                
+            }
+        });
+
+        // 채팅창 리스트 가져오기
+        // clear
+        socket.on("get_chats", async (data) => {
+            // data: 2 -> 본인 user_id
+            try {
+                let res = await firebaseApi.getChats(data);
+
+                chat.to(socket.id).emit("get_chats_on", res);
+            } catch (e) {
+                console.log(e);
+            }
+        });
+
+        // 특정 채팅방 메시지 가져오기
+        // clear
+        socket.on("get_messages", async (data) => {
+            // data: {
+            //     room_id: 3, 
+            //     user_id: 2, 상대의 user_id
+            // }
+            try {
+                let res = await firebaseApi.getMessages(data.room_id, data.user_id);
+
+                chat.to(socket.id).emit("get_messages_on", res);
+            } catch (e) {
+                console.log(e);
+            }
+        });
+
+        socket.on('exit', async (data) => {
+            // data: {
+            //     room_id: 3, // 나갈려는 방 아이디
+            //     user_id: 3, // 내 아이디
+            //     name: 'joon', // 내 아이디
+            //     to: 2, // 상대방 아이디
+            // }
+            try {
+                firebaseApi.exit(data.room_id, data.user_id);
+                if (chat.users[data.to]) {
+                    socket.to(chat.users[data.to]).emit('exit_on', {
+                        msg: `${data.name}님이 나가셨습니다.`
+                    });
+                }
+            } catch (e) {
+                console.log(e)
+            }
         });
 
         socket.on('disconnect', () => {

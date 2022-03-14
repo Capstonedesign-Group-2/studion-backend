@@ -283,6 +283,8 @@ module.exports = {
                     socket.to(roomID).emit('user_exit', { id: socket.id });
                     let rooms = getList();
                     socket.broadcast.emit('update_room_list_on', rooms);
+                    let res = getInfo(roomID, false);
+                    socket.to(roomID).emit('update_room_info_on', res);
                 }
                 console.log('[disconnect]', users);
             });
