@@ -8,7 +8,7 @@ let init = async (io) => {
         console.log('chat connection');
         console.log(`chat정보 ${socket.id}`);
 
-        socket.on('test', async () => {
+        socket.on('test', async (res) => {
             console.log('test')
             console.log('---------------');
             console.log(res);
@@ -52,8 +52,8 @@ let init = async (io) => {
             // ]
             try {
                 let res = await firebaseApi.setChat(data);
-                // 이미 있다면 res는 객체 없다면 단순 number id값
-                // 객체면 id 값 있는 걸로 getMessage하세요
+                // 이미 있다면 res.flag 1 없으면 0
+                // flag 값 1이면 바로 getMessage하세요
                 chat.to(socket.id).emit('enter_room_on', res);
             } catch (e) {
                 console.log(e)

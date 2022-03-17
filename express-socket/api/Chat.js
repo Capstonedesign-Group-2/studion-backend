@@ -104,7 +104,11 @@ exports.setChat = async (data) => {
         console.log(e)
     }
 
-    return count;
+    res = {
+        id: count,
+        flag: 0
+    }
+    return res;
 }
 
 let ok = async (to, from) => {
@@ -194,7 +198,7 @@ exports.getMessages = async (room_id, user_id) => {
         });
     }
 
-    const query = await messagesRef.orderBy('timestamp', 'desc').get();
+    const query = await messagesRef.orderBy('timestamp').get();
 
     let res = new Array();
 
