@@ -1,13 +1,5 @@
 const firebaseApi = require('../api/Chat.js');
 
-// clear
-// 채팅창에 들어왔을 때 실시간 메시지보내면
-// flag 0으로 설정하기
-// 채팅방으로 들어와있다는 걸 알아야하니
-// socket 내부에 객체하나 만들어서 저장할 것
-// ---------------------------------------
-// 그리고 내가 들어가 있는데 상대방이 읽었다면
-// update 신호 보낼 event 만들 것
 let init = async (io) => {
     let chat = io.of('/chat');
     chat['users'] = {};
@@ -122,6 +114,10 @@ let init = async (io) => {
             try {
                 let res = await firebaseApi.getMessages(data.room_id, data.user_id);
                 chat.to(socket.id).emit("get_messages_on", res);
+                // 상대가 채팅방에 들어가 있을 때 내가 읽어서
+                // flag 0으로 변환시 update로 알려주고 정보 다시 보내줌
+                // 이건 무조건 채팅방이 들어가 있을 때만 on할 것 
+                socket.to(data.user_id).emit("update_flag_message", res);
             } catch (e) {
                 console.log(e);
             }
