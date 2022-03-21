@@ -1,18 +1,22 @@
 const firebaseApi = require('../api/Chat.js');
 
+// clear
+// 채팅창에 들어왔을 때 실시간 메시지보내면
+// flag 0으로 설정하기
+// 채팅방으로 들어와있다는 걸 알아야하니
+// socket 내부에 객체하나 만들어서 저장할 것
+// ---------------------------------------
+// 그리고 내가 들어가 있는데 상대방이 읽었다면
+// update 신호 보낼 event 만들 것
 let init = async (io) => {
     let chat = io.of('/chat');
     chat['users'] = {};
+    chat['socketToUsers'] = {};
+    chat['inChat'] = {};
 
     chat.on('connection', socket => {
         console.log('chat connection');
         console.log(`chat정보 ${socket.id}`);
-
-        socket.on('test', async (res) => {
-            console.log('test')
-            console.log('---------------');
-            console.log(res);
-        });
 
         socket.on('user_register', data => {
             //data set 
@@ -20,8 +24,10 @@ let init = async (io) => {
             if (chat.users[data.id]) {
                 delete chat.users[data.id];
                 chat.users[data.id] = socket.id;
+                chat.socketToUsers[socket.id] = data.id;
             } else {
                 chat.users[data.id] = socket.id;
+                chat.socketToUsers[socket.id] = data.id;
             }
 
             chat.to(socket.id).emit('user_register_on', {
@@ -74,7 +80,13 @@ let init = async (io) => {
             //     }
             // }
             data.msg.timestamp = new Date().getTime();
-            data.msg.flag = 1;
+            
+            // 상대가 특정 채팅방에 들어와 있을 때
+            if (chat.inChat[data.id] === room_id) {
+                data.msg.flag = 0;
+            } else {
+                data.msg.flag = 1;
+            }
 
             if (chat.users[data.id]) {
                 socket.to(chat.users[data.id]).emit('send_msg_on', data.msg);
@@ -109,11 +121,38 @@ let init = async (io) => {
             // }
             try {
                 let res = await firebaseApi.getMessages(data.room_id, data.user_id);
-
                 chat.to(socket.id).emit("get_messages_on", res);
             } catch (e) {
                 console.log(e);
             }
+        });
+
+        // 특정 채팅방 유저 등록
+        // 홈페이지를 들어갔거나 포커스가 되었을 때
+        socket.on("register_in_chat", (data) => {
+            // data : {
+            //     room_id: 3,
+            //     user_id: 2 본인 
+            // }
+            chat.inChat[data.user_id] = data.room_id;
+
+            socket.emit("register_in_chat_on", {
+                msg: "등록이 완료되었습니다."
+            });
+        });
+
+        // 특정 채팅방 유저 해제
+        // 홈페이지를 나갔거나 포커스가 벗어났을 때
+        socket.on("delete_in_chat", () => {
+            let user_id = chat.socketToUsers[socket.id];
+ 
+            if (chat.inChat[user_id]) {
+                delete chat.inChat[user_id];
+            }
+
+            socket.emit("delete_in_chat_on", {
+                msg: "해제가 완료되었습니다."
+            });
         });
 
         socket.on('exit', async (data) => {
@@ -136,6 +175,16 @@ let init = async (io) => {
         });
 
         socket.on('disconnect', () => {
+            let user_id = chat.socketToUsers[socket.id];
+
+            if (chat.users[user_id]) {
+                delete chat.users[user_id];
+                delete chat.socketToUsers[socket.id];
+            }
+
+            if (chat.inChat[user_id]) {
+                delete chat.inChat[user_id];
+            }
             console.log('chat 연결해제')
         });
     });
