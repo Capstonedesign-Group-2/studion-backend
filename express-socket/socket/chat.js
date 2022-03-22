@@ -11,7 +11,7 @@ let init = async (io) => {
         console.log(`chat정보 ${socket.id}`);
 
         socket.on('user_register', data => {
-            //data set 
+            // data set 
             // id: 1 -> user_id
             if (chat.users[data.id]) {
                 delete chat.users[data.id];
@@ -33,7 +33,7 @@ let init = async (io) => {
         // 원하는 상대와 채팅 시작
         // clear
         // getChat 먼저 실행 후 없으면 할 것
-        socket.on('enter_room', async (data) => {
+        socket.on('create_room', async (data) => {
             // data: [
             //     {   
             //         // 내정보
@@ -52,7 +52,7 @@ let init = async (io) => {
                 let res = await firebaseApi.setChat(data);
                 // 이미 있다면 res.flag 1 없으면 0
                 // flag 값 1이면 바로 getMessage하세요
-                chat.to(socket.id).emit('enter_room_on', res);
+                chat.to(socket.id).emit('create_room_on', res);
             } catch (e) {
                 console.log(e)
             }
