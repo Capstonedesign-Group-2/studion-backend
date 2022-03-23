@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\JWTAuthController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RoomController;
+use App\Models\Follow;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -90,6 +92,14 @@ Route::middleware(['cors'])->group(function() {
             Route::post('/create', [CommentController::class, 'create']);
             Route::patch('/update/{comment_id}', [CommentController::class, 'update']);
             Route::delete('/destory/{comment_id}', [CommentController::class, 'destory']);
+        });
+    });
+
+    Route::prefix("follows")->group(function () {
+        Route::group(['middleware' => 'auth:api'], function () {
+            Route::get('/{id}/{kind}', [FollowController::class, 'show']);
+            Route::post('/create', [FollowController::class, 'follow']);
+            Route::delete('/{id}', [FollowController::class, 'unfollow']);
         });
     });
 
