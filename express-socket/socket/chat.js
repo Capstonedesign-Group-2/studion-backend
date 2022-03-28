@@ -74,7 +74,7 @@ let init = async (io) => {
             data.msg.timestamp = new Date().getTime();
             
             // 상대가 특정 채팅방에 들어와 있을 때
-            if (chat.inChat[data.id] === room_id) {
+            if (chat.inChat[data.id] === data.room_id) {
                 data.msg.flag = 0;
             } else {
                 data.msg.flag = 1;
