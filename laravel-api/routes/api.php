@@ -6,7 +6,6 @@ use App\Http\Controllers\JWTAuthController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\RoomController;
-use App\Models\Follow;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,7 +24,6 @@ Route::middleware(['cors'])->group(function() {
         return csrf_token();
     });
 
-    // 이런식으로 미들웨어 적용해야 에러 안남
     Route::prefix("users")->group(function () {
         // token이 필요없는 route
         Route::post("/register", [JWTAuthController::class, 'register']);
@@ -38,67 +36,53 @@ Route::middleware(['cors'])->group(function() {
         });
     });
 
-    // 이런식으로 미들웨어 적용시 에러
-    // Route::prefix("users")->group(['middleware' => 'auth:api'], function () {
-    //     Route::get("/user", [JWTAuthController::class, 'user']);
-    //     Route::get("/logout", [JWTAuthController::class, 'logout']);
-    // });
-
     Route::prefix("rooms")->group(function () {
-        // token이 필요없는 route
-        Route::get("/show", [RoomController::class, 'show']);
+        Route::get("/", [RoomController::class, 'show']);
 
-        // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
-            Route::post("/create", [RoomController::class, 'create']);
-            Route::post("/enter/{room_id}", [RoomController::class, 'enter']);
-            Route::patch("/update/{room_id}", [RoomController::class, 'update']);
-            Route::delete("/destory/{room_id}", [RoomController::class, 'destory']);
+            Route::post("/", [RoomController::class, 'create']);
+            Route::post("/{room_id}", [RoomController::class, 'enter']);
+            Route::patch("/{room_id}", [RoomController::class, 'update']);
+            Route::delete("/{room_id}", [RoomController::class, 'destory']);
             Route::delete("/exit/{room_id}", [RoomController::class, 'exit']);
         });
     });
 
     Route::prefix("posts")->group(function () {
-        // token이 필요없는 route
-        Route::get("/show", [PostController::class, 'show']);
-        Route::get("/show/{user_id}", [PostController::class, 'user_post']);
+        Route::get("/", [PostController::class, 'show']);
+        Route::get("/{user_id}", [PostController::class, 'user_post']);
 
-        // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
-            Route::post("/create", [PostController::class, 'create']);
-            Route::patch("/update/{post_id}", [PostController::class, 'update']);
-            Route::delete("/destory/{post_id}", [PostController::class, 'destory']);
+            Route::post("/", [PostController::class, 'create']);
+            Route::patch("/{post_id}", [PostController::class, 'update']);
+            Route::delete("/{post_id}", [PostController::class, 'destory']);
         });
     });
 
     Route::prefix("likes")->group(function () {
-        // token이 필요없는 route
-        Route::get('/show/{post_id}', [LikeController::class, 'show']);
+        Route::get('/{post_id}', [LikeController::class, 'show']);
 
-        // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
             Route::get('/posts/{user_id}', [LikeController::class, 'likeToPosts']);
-            Route::post('/like/{post_id}', [LikeController::class, 'like']);
-            Route::delete('/unlike/{post_id}', [LikeController::class, 'unLike']);
+            Route::post('/{post_id}', [LikeController::class, 'like']);
+            Route::delete('/{post_id}', [LikeController::class, 'unLike']);
         });
     });
 
     Route::prefix("comments")->group(function () {
-        // token이 필요없는 route
-        Route::get('/show/{post_id}', [CommentController::class, 'show']);
+        Route::get('/{post_id}', [CommentController::class, 'show']);
 
-        // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
-            Route::post('/create', [CommentController::class, 'create']);
-            Route::patch('/update/{comment_id}', [CommentController::class, 'update']);
-            Route::delete('/destory/{comment_id}', [CommentController::class, 'destory']);
+            Route::post('/', [CommentController::class, 'create']);
+            Route::patch('/{comment_id}', [CommentController::class, 'update']);
+            Route::delete('/{comment_id}', [CommentController::class, 'destory']);
         });
     });
 
     Route::prefix("follows")->group(function () {
         Route::group(['middleware' => 'auth:api'], function () {
             Route::get('/{id}/{kind}', [FollowController::class, 'show']);
-            Route::post('/create', [FollowController::class, 'follow']);
+            Route::post('/', [FollowController::class, 'follow']);
             Route::delete('/{id}', [FollowController::class, 'unfollow']);
         });
     });
