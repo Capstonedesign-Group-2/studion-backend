@@ -13,6 +13,15 @@ class JWTAuthController extends Controller
         return response()->json(auth('api')->user());
     }
 
+    public function info($user_id) {
+        $user = User::findOrFail($user_id);
+
+        return response()->json([
+            'status' => 'success',
+            'user' => $user
+        ]);
+    }
+
     public function register(Request $req) {
         $validator = Validator::make($req->all(), [
             'name' => 'required|string|max:100',
