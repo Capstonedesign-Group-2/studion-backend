@@ -25,16 +25,16 @@ Route::middleware(['cors'])->group(function() {
     });
 
     Route::prefix("users")->group(function () {
-        // token이 필요없는 route
-        Route::get("/{user_id}", [JWTAuthController::class, 'info']);
-        Route::post("/register", [JWTAuthController::class, 'register']);
-        Route::post("/login", [JWTAuthController::class, 'login']);
-
         // token이 필요한 route
         Route::group(['middleware' => 'auth:api'], function () {
             Route::get("/user", [JWTAuthController::class, 'user']);
             Route::get("/logout", [JWTAuthController::class, 'logout']);
         });
+
+        // token이 필요없는 route
+        Route::get("/{user_id}", [JWTAuthController::class, 'info']);
+        Route::post("/register", [JWTAuthController::class, 'register']);
+        Route::post("/login", [JWTAuthController::class, 'login']);
     });
 
     Route::prefix("rooms")->group(function () {
