@@ -32,9 +32,9 @@ Route::middleware(['cors'])->group(function() {
         });
 
         // token이 필요없는 route
-        Route::get("/{user_id}", [JWTAuthController::class, 'info']);
         Route::post("/register", [JWTAuthController::class, 'register']);
         Route::post("/login", [JWTAuthController::class, 'login']);
+        Route::get("/{user_id}", [JWTAuthController::class, 'info']);
     });
 
     Route::prefix("rooms")->group(function () {

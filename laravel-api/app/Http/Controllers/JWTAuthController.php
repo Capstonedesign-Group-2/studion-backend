@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chat_user;
+use App\Models\Follow;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -10,11 +11,17 @@ use Illuminate\Support\Facades\Validator;
 class JWTAuthController extends Controller
 {
     public function user() {
-        return response()->json(auth('api')->user());
+        $user = auth('api')->user();
+        $user->followers = Follow::where('following', $user->id)->count();
+        $user->followings = Follow::where('follower', $user->id)->count();
+
+        return response()->json($user, 200);
     }
 
     public function info($user_id) {
         $user = User::findOrFail($user_id);
+        $user->followers = Follow::where('following', $user_id)->count();
+        $user->followings = Follow::where('follower', $user_id)->count();
 
         return response()->json([
             'status' => 'success',
