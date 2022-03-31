@@ -64,4 +64,30 @@ class FollowController extends Controller
             'kind' => $kind
         ], 200);
     }
+
+    // 내 follow인지
+    public function exist(Request $req, $id) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 422);
+        }
+
+        $exist = Follow::where('follower', $req->user_id)->where('following', $id)->get();
+
+        if ($exist->count()) {
+            return response()->json([
+                'status' => true
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false
+            ], 200);
+        }
+    }
 }

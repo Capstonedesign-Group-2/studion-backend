@@ -81,9 +81,11 @@ Route::middleware(['cors'])->group(function() {
     });
 
     Route::prefix("follows")->group(function () {
+        Route::get('/{id}/{kind}', [FollowController::class, 'show']);
+
         Route::group(['middleware' => 'auth:api'], function () {
-            Route::get('/{id}/{kind}', [FollowController::class, 'show']);
             Route::post('/', [FollowController::class, 'follow']);
+            Route::post('/{id}', [FollowController::class, 'exist']);
             Route::delete('/{id}', [FollowController::class, 'unfollow']);
         });
     });
