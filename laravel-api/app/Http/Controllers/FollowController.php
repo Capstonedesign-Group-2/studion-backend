@@ -82,7 +82,8 @@ class FollowController extends Controller
 
         if ($exist->count()) {
             return response()->json([
-                'status' => true
+                'status' => true,
+                'follow_id' => $exist[0]->id
             ], 200);
         } else {
             return response()->json([
