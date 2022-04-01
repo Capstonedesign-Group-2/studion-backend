@@ -15,34 +15,54 @@ module.exports = {
         let roomCount = 1;
         
         let getList = () => {
+            // if (roomInfo.rooms.length === 0) return roomInfo;
+            // let res = cloneDeep(roomInfo);
+
+            // for (let i = 0; i < res.rooms.length; i++) {
+            //     if (userToRoom[res.rooms[i].id] && userToRoom[res.rooms[i].id].length !== 0) {
+            //         res.rooms[i].users = userToRoom[res.rooms[i].id];
+            //     } else {
+            //         res.rooms.splice(i, 1);
+            //         i--;
+            //     }
+            // }
+
             if (roomInfo.rooms.length === 0) return roomInfo;
-            let res = cloneDeep(roomInfo);
-            console.log(res, '/ roomInfo')
-            for (let i = 0; i < res.rooms.length; i++) {
-                if (userToRoom[res.rooms[i].id] && userToRoom[res.rooms[i].id].length !== 0) {
-                    res.rooms[i].users = userToRoom[res.rooms[i].id];
+            // let res = cloneDeep(roomInfo);
+
+            for (let i = 0; i < roomInfo.rooms.length; i++) {
+                if (userToRoom[roomInfo.rooms[i].id] && userToRoom[roomInfo.rooms[i].id].length !== 0) {
+                    roomInfo.rooms[i].users = userToRoom[roomInfo.rooms[i].id];
                 } else {
-                    res.rooms.splice(i, 1);
+                    roomInfo.rooms.splice(i, 1);
                     i--;
                 }
             }
-            console.log('getlist / ', res);
-            console.log('origin / ', roomInfo);
-            return res;
-        }
-        let getInfo = (id, flag) => {
-            let res = {};
 
+            // console.log('getlist / ', res);
+            console.log('origin / ', roomInfo);
+            return roomInfo;
+        }
+        let getInfo = (id, flag, data) => {
             for (let i = 0; i < roomInfo.rooms.length; i++) {
-                if (roomInfo.rooms[i].id === id) {
+                console.log(roomInfo.rooms, '/ getInfo update');
+                console.log(roomInfo.rooms.length, '/ getInfo length');
+                console.log(id, '/room_id')
+                console.log(roomInfo.rooms[i].id, '/roominfo room_id')
+                if (roomInfo.rooms[i].id == id) {
                     if (flag) roomInfo.rooms[i] = data;
-                    res = cloneDeep(roomInfo.rooms[i]);
-                    res.users = userToRoom[res.id];
-                    break;
+                    console.log(i, '/index')
+                    // res = cloneDeep(roomInfo.rooms[i]);
+                    // console.log(roomInfo.rooms[i]);
+                    // console.log(res);
+                    roomInfo.rooms[i].users = userToRoom[id];
+                    // res.users = userToRoom[res.id];
+                    
+                    return roomInfo.rooms[i];
                 }
             }
 
-            return res;
+            
         }
 
         const maximum = process.env.MAXIMUM || 4;
@@ -107,8 +127,8 @@ module.exports = {
                 // await redisApi.createRoom(data.id, data);
                 // let res = await redisApi.getRoomInfo(data.id);
                 
-                let res = getInfo(data.id, true);
-
+                let res = getInfo(data.id, true, data);
+                console.log(res, '/res update')
                 io.to(data.id).emit('update_room_info_on', res);
                 // res = await redisApi.getRoomList();
                 res = getList();
@@ -226,6 +246,7 @@ module.exports = {
                 let res = getList();
                 socket.broadcast.emit('update_room_list_on', res);
                 res = getInfo(roomID, false);
+                console.log(res, '/exit res')
                 socket.to(roomID).emit('update_room_info_on', res);
             })
 
