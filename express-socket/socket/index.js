@@ -15,20 +15,7 @@ module.exports = {
         let roomCount = 1;
         
         let getList = () => {
-            // if (roomInfo.rooms.length === 0) return roomInfo;
-            // let res = cloneDeep(roomInfo);
-
-            // for (let i = 0; i < res.rooms.length; i++) {
-            //     if (userToRoom[res.rooms[i].id] && userToRoom[res.rooms[i].id].length !== 0) {
-            //         res.rooms[i].users = userToRoom[res.rooms[i].id];
-            //     } else {
-            //         res.rooms.splice(i, 1);
-            //         i--;
-            //     }
-            // }
-
             if (roomInfo.rooms.length === 0) return roomInfo;
-            // let res = cloneDeep(roomInfo);
 
             for (let i = 0; i < roomInfo.rooms.length; i++) {
                 if (userToRoom[roomInfo.rooms[i].id] && userToRoom[roomInfo.rooms[i].id].length !== 0) {
@@ -39,30 +26,17 @@ module.exports = {
                 }
             }
 
-            // console.log('getlist / ', res);
-            console.log('origin / ', roomInfo);
             return roomInfo;
         }
         let getInfo = (id, flag, data) => {
             for (let i = 0; i < roomInfo.rooms.length; i++) {
-                console.log(roomInfo.rooms, '/ getInfo update');
-                console.log(roomInfo.rooms.length, '/ getInfo length');
-                console.log(id, '/room_id')
-                console.log(roomInfo.rooms[i].id, '/roominfo room_id')
                 if (roomInfo.rooms[i].id == id) {
                     if (flag) roomInfo.rooms[i] = data;
-                    console.log(i, '/index')
-                    // res = cloneDeep(roomInfo.rooms[i]);
-                    // console.log(roomInfo.rooms[i]);
-                    // console.log(res);
                     roomInfo.rooms[i].users = userToRoom[id];
-                    // res.users = userToRoom[res.id];
                     
                     return roomInfo.rooms[i];
                 }
             }
-
-            
         }
 
         const maximum = process.env.MAXIMUM || 4;
@@ -75,7 +49,6 @@ module.exports = {
             // clear
             socket.on('get_room_list', async () => {
                 let res = getList();
-                console.log(res);
                 io.to(socket.id).emit('get_room_list_on', res);
             });
 
@@ -85,9 +58,7 @@ module.exports = {
                 // data = {
                 //    room_id: 1
                 // }
-                // let res = await redisApi.getRoomUser(data.room_id);
                 let res = userToRoom[data.room_id];
-                console.log(res);
                 io.to(socket.id).emit('get_room_user_on', res);
             });
 
@@ -102,10 +73,8 @@ module.exports = {
                     //     locked: 0
                     //     // locked: 1이면 password 까지
                     // }
-                // let roomCount = await redisApi.getRoomCount();
                 data['id'] = roomCount;
                 roomCount++;
-                // await redisApi.createRoom(data.id, data);
                 roomInfo['rooms'].push(data);
                 
                 console.log(roomInfo);
@@ -124,13 +93,9 @@ module.exports = {
                     //     locked: 0
                     //     // locked: 1이면 password 까지
                     // }
-                // await redisApi.createRoom(data.id, data);
-                // let res = await redisApi.getRoomInfo(data.id);
                 
                 let res = getInfo(data.id, true, data);
-                console.log(res, '/res update')
                 io.to(data.id).emit('update_room_info_on', res);
-                // res = await redisApi.getRoomList();
                 res = getList();
                 socket.broadcast.emit('update_room_list_on', res);
             });
@@ -171,7 +136,7 @@ module.exports = {
                 }
                 socketToRoom[socket.id] = data.room_id;
                 data.user['socket_id'] = socket.id;
-                // await redisApi.joinRoom(data.room_id, socket.id, data.user);
+
                 if (userToRoom[data.room_id]) {
                     let roomUser = userToRoom[data.room_id];
                     roomUser = roomUser.filter(user => user.id !== data.user.id);
@@ -180,6 +145,7 @@ module.exports = {
                 } else {
                     userToRoom[data.room_id] = [data.user];
                 }
+
                 socket.join(data.room_id);
                 console.log(`[${socketToRoom[socket.id]}]: ${socket.id} enter`);
                 console.log(userToRoom);
@@ -189,9 +155,7 @@ module.exports = {
                 
                 io.sockets.to(socket.id).emit('all_users', usersInThisRoom);
                 
-                // let res = await redisApi.getRoomList();
                 let res = getList();
-                console.log(res);
                 io.emit('update_room_list_on', res);
             });
 
@@ -199,6 +163,7 @@ module.exports = {
             // clear
             socket.on('update_room_list', async () => {
                 console.log('[ON] update_room_list');
+
                 let res = getList();
                 io.emit('update_room_list_on', res);
             });
@@ -206,7 +171,6 @@ module.exports = {
             // 합주실 내부에 있는 유저들에게 정보 업데이트 알림
             // clear
             socket.on('get_room_info', async (data) => {
-                // let res = await redisApi.getRoomInfo(data.id);
                 let res = getInfo(data.id, false);
                 io.to(data.id).emit('update_room_info_on', res);
             });
@@ -225,7 +189,6 @@ module.exports = {
                 const roomID = socketToRoom[socket.id];
                 let room = users[roomID];
                 if (room) {
-                    // let res = await redisApi.exitRoom(roomID, socket.id);
                     let roomUser = userToRoom[roomID]
                     roomUser = roomUser.filter(user => user.socket_id !== socket.id);
                     userToRoom[roomID] = roomUser;
@@ -233,20 +196,11 @@ module.exports = {
                     room = room.filter(user => user.id !== socket.id);
                     users[roomID] = room;
                     socket.leave(roomID);
-                    // if (room.length === 0) {
-                    //     let res = await redisApi.destoryRoom(roomID);
-                    //     if (res) {
-                    //         delete users[roomID];
-                    //         socket.leave(roomID);
-                    //         return;
-                    //     }
-                    // }
                 }
                 socket.to(roomID).emit('user_exit', { id: socket.id });
                 let res = getList();
                 socket.broadcast.emit('update_room_list_on', res);
                 res = getInfo(roomID, false);
-                console.log(res, '/exit res')
                 socket.to(roomID).emit('update_room_info_on', res);
             })
 
@@ -261,7 +215,6 @@ module.exports = {
             });
 
             socket.on('offer', data => {
-                //console.log(data.sdp);
                 socket.to(data.offerReceiveID).emit('getOffer', {
                     sdp: data.sdp,
                     offerSendID: data.offerSendID,
@@ -270,12 +223,10 @@ module.exports = {
             });
 
             socket.on('answer', data => {
-                //console.log(data.sdp);
                 socket.to(data.answerReceiveID).emit('getAnswer', { sdp: data.sdp, answerSendID: data.answerSendID });
             });
 
             socket.on('candidate', data => {
-                //console.log(data.candidate);
                 socket.to(data.candidateReceiveID).emit('getCandidate', { candidate: data.candidate, candidateSendID: data.candidateSendID });
             });
 
@@ -285,7 +236,6 @@ module.exports = {
                 const roomID = socketToRoom[socket.id];
                 let room = users[roomID];
                 if (room) {
-                    // let res = await redisApi.exitRoom(roomID, socket.id);
                     let roomUser = userToRoom[roomID]
                     roomUser = roomUser.filter(user => user.socket_id !== socket.id);
                     userToRoom[roomID] = roomUser;
@@ -293,14 +243,6 @@ module.exports = {
                     room = room.filter(user => user.id !== socket.id);
                     users[roomID] = room;
                     socket.leave(roomID);
-                    // if (room.length === 0) {
-                    //     let res = await redisApi.destoryRoom(roomID);
-                    //     if (res) {
-                    //         delete users[roomID];
-                    //         socket.leave(roomID);
-                    //         return;
-                    //     }
-                    // }
                     socket.to(roomID).emit('user_exit', { id: socket.id });
                     let rooms = getList();
                     socket.broadcast.emit('update_room_list_on', rooms);
