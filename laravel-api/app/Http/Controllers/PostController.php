@@ -31,7 +31,7 @@ class PostController extends Controller
         $saveFile->link = Storage::disk('s3')->url($file . '/' . $fileName);
         $saveFile->save();
 
-        if ($file == 'audio') {
+        if (isset($req->composers) && $file == 'audio') {
             $this->createComposer($req, $saveFile->id);
         }
     }
