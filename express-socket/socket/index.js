@@ -41,10 +41,10 @@ module.exports = {
 
         const maximum = process.env.MAXIMUM || 4;
 
-        chat(io);
-
+        
         // room socket 연결
         io.on('connection', async (socket) => {
+            chat(io, socket);
             // room list 가져올 시 room 내부 사람들 정보도 가져옴
             // clear
             socket.on('get_room_list', async () => {
