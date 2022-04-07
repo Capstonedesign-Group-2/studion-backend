@@ -33,10 +33,11 @@ class CommentController extends Controller
     }
 
     public function show($post_id) {
-        $comments = Comment::where('post_id', $post_id)->get();
+        $comments = Comment::where('post_id', $post_id)->orderBy('created_at', 'desc')->paginate(15);
 
         for ($i = 0; $i < $comments->count(); $i++) {
             $comments[$i]->user;
+            $comments[$i]->created = $comments[$i]->created_at_formatted;
         }
 
         return response()->json([

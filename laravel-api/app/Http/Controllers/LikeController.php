@@ -57,10 +57,11 @@ class LikeController extends Controller
 
     // 특정 게시물에 좋아요 한 사람들
     public function show($post_id) {
-        $likes = Like::where('post_id', $post_id)->get();
+        $likes = Like::where('post_id', $post_id)->orderBy('created_at', 'desc')->paginate(15);
 
         for ($i = 0; $i < $likes->count(); $i++) {
             $likes[$i]->user;
+            $likes[$i]->created = $likes[$i]->created_at_formatted;
         }
 
         return response()->json([
@@ -71,7 +72,7 @@ class LikeController extends Controller
 
     // 본인이 좋아요 한 게시물들
     public function likeToPosts($user_id) {
-        $likes = Like::where('user_id', $user_id)->get();
+        $likes = Like::where('user_id', $user_id)->orderBy('created_at', 'desc')->paginate(15);
 
         for ($i = 0; $i < $likes->count(); $i++) {
             $likes[$i]->post->user;
