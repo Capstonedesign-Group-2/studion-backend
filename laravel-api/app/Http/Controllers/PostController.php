@@ -201,8 +201,16 @@ class PostController extends Controller
         ], 200);
     }
 
-    public function rank() {
-        $posts = Post::withCount('likes')->orderBy('likes_count', 'desc')
+    public function rank($date) {
+        $to = date("Y-m-d H:i:s");
+        if ($date == 'week') {
+            $from = date("Y-m-d H:i:s", strtotime("-1 week"));
+        } else if ($date == 'month') {
+            $from = date("Y-m-d H:i:s", strtotime("-1 month"));
+        }
+
+        $posts = Post::whereBetween('created_at', [$from, $to])->withCount('likes')
+            ->orderBy('likes_count', 'desc')
             ->orderBy('created_at', 'desc')->limit(3)->get();
 
         foreach($posts as $post) {

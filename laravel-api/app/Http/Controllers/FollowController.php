@@ -48,9 +48,9 @@ class FollowController extends Controller
     // following or follower 보기
     public function show($id, $kind) {
         if ($kind == 'follower') {
-            $follows = Follow::where('following', $id)->get();
+            $follows = Follow::where('following', $id)->orderBy('created_at', 'desc')->paginate(15);
         } else if ($kind == 'following') {
-            $follows = Follow::where('follower', $id)->get();
+            $follows = Follow::where('follower', $id)->orderBy('created_at', 'desc')->paginate(15);
         }
 
         foreach($follows as $follow) {

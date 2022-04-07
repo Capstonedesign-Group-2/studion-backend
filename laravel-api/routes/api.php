@@ -50,7 +50,7 @@ Route::middleware(['cors'])->group(function() {
     });
 
     Route::prefix("posts")->group(function () {
-        Route::get("/rank", [PostController::class, 'rank']);
+        Route::get("/rank/{date}", [PostController::class, 'rank']);
         Route::get("/", [PostController::class, 'show']);
         Route::get("/{user_id}", [PostController::class, 'user_post']);
 
