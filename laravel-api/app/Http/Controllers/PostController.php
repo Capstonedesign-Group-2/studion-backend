@@ -107,6 +107,7 @@ class PostController extends Controller
             $posts[$i]->user;
             $posts[$i]->images;
             $posts[$i]->audios = $posts[$i]->audios()->get();
+            $posts[$i]->likes = $posts[$i]->likes()->get()->count();
 
             for ($j = 0; $j < $posts[$i]->audios->count(); $j++) {
                 $posts[$i]->audios[$j]->composers = $posts[$i]->audios[$j]->composers()->get();
@@ -133,6 +134,7 @@ class PostController extends Controller
             $posts[$i]->user;
             $posts[$i]->images;
             $posts[$i]->audios = $posts[$i]->audios()->get();
+            $posts[$i]->likes = $posts[$i]->likes()->get()->count();
 
             for ($j = 0; $j < $posts[$i]->audios->count(); $j++) {
                 $posts[$i]->audios[$j]->composers = $posts[$i]->audios[$j]->composers()->get();
@@ -217,6 +219,7 @@ class PostController extends Controller
             $post->user;
             $post->images;
             $post->audios = $post->audios()->get();
+            $post->likes = $post->likes()->get()->count();
 
             foreach($post->audios as $audio) {
                 $audio->composers = $audio->composers()->get();

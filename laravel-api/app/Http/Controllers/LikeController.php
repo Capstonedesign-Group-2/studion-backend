@@ -76,11 +76,41 @@ class LikeController extends Controller
 
         for ($i = 0; $i < $likes->count(); $i++) {
             $likes[$i]->post->user;
+            $likes[$i]->post->likes = $likes[$i]->post->likes()->get()->count();
         }
 
         return response()->json([
             'status' => 'success',
             'likeToPosts' => $likes
         ], 200);
+    }
+
+    // 게시글이 좋아요 되어있는지
+    public function exist(Request $req, $post_id) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 422);
+        }
+
+        $flag = Like::where('user_id', $req->user_id)
+            ->where('post_id', $post_id)
+            ->get();
+
+        if ($flag->count()) {
+            return response()->json([
+                'status' => true
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false
+            ], 200);
+        }
+
     }
 }

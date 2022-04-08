@@ -66,6 +66,7 @@ Route::middleware(['cors'])->group(function() {
 
         Route::group(['middleware' => 'auth:api'], function () {
             Route::get('/posts/{user_id}', [LikeController::class, 'likeToPosts']);
+            Route::post('/exist/{post_id}', [LikeController::class, 'exist']);
             Route::post('/{post_id}', [LikeController::class, 'like']);
             Route::delete('/{post_id}', [LikeController::class, 'unLike']);
         });
