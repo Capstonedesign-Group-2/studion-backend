@@ -46,8 +46,23 @@ let init = async (io, socket) => {
         // ]
         try {
             let res = await firebaseApi.setChat(data);
+
+            if (!res.flag) {
+                let msg = {
+                    user_id: 0,
+                    name: 'admin',
+                    image: null,
+                    content: '대화를 시작하였습니다.',
+                    timestamp: new Date().getTime(),
+                    notice: 1,
+                    flag: 0
+                }
+                
+                await firebaseApi.setMessage(res.id, msg);
+            }
+
             // 이미 있다면 res.flag 1 없으면 0
-            // flag 값 1이면 바로 getMessage하세요
+            // 받으면 getmessage 할 것
             io.to(socket.id).emit('create_chat_on', res);
         } catch (e) {
             console.log(e)
@@ -68,6 +83,7 @@ let init = async (io, socket) => {
         //     }
         // }
         data.msg.timestamp = new Date().getTime();
+        data.msg.notice = 0;
 
         // 상대가 특정 채팅방에 들어와 있을 때
         if (io.inChat[data.id] === data.room_id) {
@@ -147,7 +163,7 @@ let init = async (io, socket) => {
         });
     });
 
-    socket.on('exit', async (data) => {
+    socket.on('chat_exit', async (data) => {
         // data: {
         //     room_id: 3, // 나갈려는 방 아이디
         //     user_id: 3, // 내 아이디
