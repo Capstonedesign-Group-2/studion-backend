@@ -250,9 +250,7 @@ exports.exit = async (room_id, user_id) => {
     const query2 = await memberRef.where('user_id', '==', user_id).get();
 
     query2.forEach((doc) => {
-        memberRef.doc(doc.id).set({
-            flag: false
-        }, { merge: true });
+        memberRef.doc(doc.id).delete();
     });
 }
 
