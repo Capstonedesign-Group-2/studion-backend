@@ -190,20 +190,20 @@ let init = async (io, socket) => {
         // }
         try {
             firebaseApi.exit(data.room_id, data.user_id);
+            
+            let msg = {
+                user_id: 0,
+                name: 'admin',
+                image: null,
+                content: `${data.name}님이 나가셨습니다.`,
+                timestamp: new Date().getTime(),
+                notice: 1,
+                flag: 0
+            }
+            
+            await firebaseApi.setMessage(res.id, msg);
 
             if (chat_users[data.to]) {
-                let msg = {
-                    user_id: 0,
-                    name: 'admin',
-                    image: null,
-                    content: `${data.name}님이 나가셨습니다.`,
-                    timestamp: new Date().getTime(),
-                    notice: 1,
-                    flag: 0
-                }
-                
-                await firebaseApi.setMessage(res.id, msg);
-
                 socket.to(chat_users[data.to]).emit('send_chat_msg_on', msg)
             }
         } catch (e) {
