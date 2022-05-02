@@ -1,11 +1,14 @@
 const firebaseApi = require('../api/Chat.js');
-let count = 0;
+
+let chat_users = {};
+let socketToUsers = {};
+let inChat = {};
 
 let init = async (io, socket) => {
     // let chat = io.of('/chat');
-    let chat_users = {};
-    let socketToUsers = {};
-    let inChat = {};
+    // let chat_users = {};
+    // let socketToUsers = {};
+    // let inChat = {};
     socket.on('user_register', data => {
         // data set 
         // id: 1 -> user_id
@@ -20,7 +23,7 @@ let init = async (io, socket) => {
 
         io.to(socket.id).emit('user_register_on', {
             msg: '등록이 완료되었습니다.',
-            id: chat_users[data.id]
+            id: chat_users
         });
 
         console.log(`들어온 사람 ${chat_users[data.id]}`);
