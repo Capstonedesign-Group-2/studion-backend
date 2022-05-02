@@ -58,11 +58,16 @@ exports.getChats = async (from) => {
 }
 
 // 특정방 정보 보기
-exports.getChatData = async (room_id) => {
-    const query = db.collection('chats').doc(room_id.toString());
+exports.getChatData = async (data) => {
+    const query = db.collection('chats').doc(data.room_id.toString());
     const doc = await query.get();
-
-    return doc.data();
+    let res = doc.data();
+    
+    for (let i = 0; i < res.users.length; i++) {
+        if (res.users[i] !== data.user_id) {
+            return res.users[i];
+        }
+    }
 }
 
 // let data = async () => {

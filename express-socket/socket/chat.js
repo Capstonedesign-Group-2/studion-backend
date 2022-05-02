@@ -117,7 +117,10 @@ let init = async (io, socket) => {
 
     // 특정 채팅방 정보 가져오기
     socket.on("get_chat_data", async (data) => {
-        // data: 2 -> room_id
+        // data: {
+        //      room_id: 2,
+        //      user_id: 1 -> 본인 user_id
+        //}
         try {
             let res = await firebaseApi.getChatData(data);
             console.log(res);
