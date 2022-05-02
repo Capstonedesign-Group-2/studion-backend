@@ -1,11 +1,13 @@
 // const redisApi = require('../api/redisRoom.js');
 const chat = require('./chat.js');
-const cloneDeep = require("lodash.clonedeep");
 
 module.exports = {
     start: async (io) => {
         let users = {};
         let socketToRoom = {};
+        io['users'] = {};
+        io['socketToUsers'] = {};
+        io['inChat'] = {};
         
         let roomInfo = {
             rooms: []

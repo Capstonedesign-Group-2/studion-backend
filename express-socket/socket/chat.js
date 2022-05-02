@@ -1,11 +1,11 @@
 const firebaseApi = require('../api/Chat.js');
+let count = 0;
 
 let init = async (io, socket) => {
     // let chat = io.of('/chat');
-    io['users'] = {};
-    io['socketToUsers'] = {};
-    io['inChat'] = {};
-
+    // io['users'] = {};
+    // io['socketToUsers'] = {};
+    // io['inChat'] = {};
     socket.on('user_register', data => {
         // data set 
         // id: 1 -> user_id
@@ -20,12 +20,12 @@ let init = async (io, socket) => {
 
         io.to(socket.id).emit('user_register_on', {
             msg: '등록이 완료되었습니다.',
-            id: io.users[data.id]
+            id: io.users
         });
 
         console.log(`들어온 사람 ${io.users[data.id]}`);
     });
-
+    
     // 원하는 상대와 채팅 시작
     // clear
     socket.on('create_chat', async (data) => {
@@ -142,8 +142,9 @@ let init = async (io, socket) => {
             io.to(socket.id).emit("get_messages_on", res);
             // 상대가 채팅방에 들어가 있을 때 내가 읽어서
             // flag 0으로 변환시 update로 알려주고 정보 다시 보내줌
-            // 이건 무조건 채팅방이 들어가 있을 때만 on할 것 
-            socket.to(data.user_id).emit("update_flag_message", res);
+            if (io.inChat[data.user_id]) {
+                socket.to(data.user_id).emit("update_flag_message", res);
+            }
         } catch (e) {
             console.log(e);
         }
