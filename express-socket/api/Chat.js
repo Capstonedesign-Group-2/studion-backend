@@ -57,6 +57,14 @@ exports.getChats = async (from) => {
     return res;
 }
 
+// 특정방 정보 보기
+exports.getChatData = async (room_id) => {
+    const query = db.collection('chats').doc(room_id.toString());
+    const doc = await query.get();
+
+    return doc.data();
+}
+
 // let data = async () => {
 //     let res= await getChats(1);
 //     console.log(res, '/ data in')

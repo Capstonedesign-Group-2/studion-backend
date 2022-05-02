@@ -28,7 +28,6 @@ let init = async (io, socket) => {
 
     // 원하는 상대와 채팅 시작
     // clear
-    // getChat 먼저 실행 후 없으면 할 것
     socket.on('create_chat', async (data) => {
         // data: [
         //     {   
@@ -115,6 +114,18 @@ let init = async (io, socket) => {
             console.log(e);
         }
     });
+
+    // 특정 채팅방 정보 가져오기
+    socket.on("get_chat_data", async (data) => {
+        // data: 2 -> room_id
+        try {
+            let res = await firebaseApi.getChatData(data);
+            console.log(res);
+            io.to(socket.id).emit("get_chat_data_on", res);
+        } catch (e) {
+            console.log(e);
+        }
+    })
 
     // 특정 채팅방 메시지 가져오기
     // clear
