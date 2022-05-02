@@ -39,7 +39,7 @@ module.exports = {
             }
         }
 
-        const maximum = process.env.MAXIMUM || 4;
+        const maximum = process.env.MAXIMUM || 5;
 
         
         // room socket 연결
