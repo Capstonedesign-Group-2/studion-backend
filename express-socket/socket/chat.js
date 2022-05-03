@@ -96,6 +96,10 @@ let init = async (io, socket) => {
 
         if (chat_users[data.id]) {
             socket.to(chat_users[data.id]).emit('send_chat_msg_on', data.msg);
+
+            let res = await firebaseApi.getChats(data.id);
+
+            socket.to(chat_users[data.id]).emit('update_chats', res);
         }
 
         try {
@@ -189,8 +193,6 @@ let init = async (io, socket) => {
         //     to: 2, // 상대방 아이디
         // }
         try {
-            firebaseApi.exit(data.room_id, data.user_id);
-            
             let msg = {
                 user_id: 0,
                 name: 'admin',
@@ -206,6 +208,8 @@ let init = async (io, socket) => {
             if (chat_users[data.to]) {
                 socket.to(chat_users[data.to]).emit('send_chat_msg_on', msg)
             }
+
+            firebaseApi.exit(data.room_id, data.user_id);
         } catch (e) {
             console.log(e)
         }
