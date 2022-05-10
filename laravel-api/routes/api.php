@@ -53,6 +53,7 @@ Route::middleware(['cors'])->group(function() {
         Route::get("/rank/{date}", [PostController::class, 'rank']);
         Route::get("/", [PostController::class, 'show']);
         Route::get("/{user_id}", [PostController::class, 'user_post']);
+        Route::get("/show/{post_id}", [PostController::class, 'detail']);
 
         Route::group(['middleware' => 'auth:api'], function () {
             Route::post("/", [PostController::class, 'create']);

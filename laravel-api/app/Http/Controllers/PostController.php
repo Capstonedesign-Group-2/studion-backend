@@ -126,6 +126,29 @@ class PostController extends Controller
         ], 200);
     }
 
+    public function detail($post_id) {
+        $post = Post::find($post_id);
+        $post->user;
+        $post->images;
+        $post->audios = $post->audios()->get();
+        $post->likes = $post->likes()->get()->count();
+
+        for ($j = 0; $j < $post->audios->count(); $j++) {
+            $post->audios[$j]->composers = $post->audios[$j]->composers()->get();
+
+            for ($z = 0; $z < $post->audios[$j]->composers->count(); $z++) {
+                $post->audios[$j]->composers[$z]->user;
+            }
+        }
+
+        $post->created = $post->created_at_formatted;
+
+        return response()->json([
+            'status' => 'success',
+            'post' => $post,
+        ], 200);
+    }
+
     public function user_post($user_id) {
         // 개인에 대한 게시글
         $posts = Post::where('user_id', $user_id)->orderBy('created_at', 'desc')->paginate(15);
