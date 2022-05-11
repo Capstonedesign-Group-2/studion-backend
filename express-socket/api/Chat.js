@@ -237,17 +237,15 @@ exports.exit = async (room_id, user_id) => {
     const query = (await chatDoc.get()).data();
 
     for (let i = 0; i < query.users.length; i++) {
-        if (query.users[i] !== user_id) {
             chatDoc.set({
-                users: [query.users[i]]
+                users: []
             }, { merge: true });
 
             break;
-        }
     }
 
     const memberRef = db.collection('chats').doc(room_id.toString()).collection('members');
-    const query2 = await memberRef.where('user_id', '==', user_id).get();
+    const query2 = await memberRef.get();
 
     query2.forEach((doc) => {
         memberRef.doc(doc.id).delete();
