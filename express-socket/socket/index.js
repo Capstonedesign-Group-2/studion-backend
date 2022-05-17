@@ -129,10 +129,10 @@ module.exports = {
                     }
 
                     if (num === 0) {
-                        users[data.room_id].push({ id: socket.id, name: data.user.name, user_id: data.user.id });
+                        users[data.room_id].push({ id: socket.id, name: data.user.name, user_id: data.user.id, user: data.user });
                     }
                 } else {
-                    users[data.room_id] = [{ id: socket.id, name: data.user.name, user_id: data.user.id }];
+                    users[data.room_id] = [{ id: socket.id, name: data.user.name, user_id: data.user.id, user: data.user }];
                 }
                 socketToRoom[socket.id] = data.room_id;
                 data.user['socket_id'] = socket.id;
@@ -157,6 +157,13 @@ module.exports = {
                 
                 let res = getList();
                 io.emit('update_room_list_on', res);
+            });
+
+            // 합주 녹음 시 인원들 명단 
+            socket.on('people_recording', data => {
+                // data: room_id
+                let res = users[data];
+                io.to(socket.id).emit('people_recording_on', res);
             });
 
             // 합주실 리스트 업데이트 알림
