@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Chat_user;
 use App\Models\Follow;
+use App\Models\Image;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class JWTAuthController extends Controller
 {
@@ -119,6 +122,46 @@ class JWTAuthController extends Controller
         // chat_user에 user_id로 합주실 알아내고
         // 합주실의 관계정의로 데이터를 가져온다.
         $room_id = Chat_user::where('user_id', $req->user_id)->where('flag', 0)->first();
+    }
 
+    public function edit(Request $req, $user_id) {
+        $validator = Validator::make($req->all(), [
+            'name' => 'string|max:100',
+            'email' => 'email|max:255|unique:users',
+            'password' => 'string|min:8|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->toJson(),
+            ], 422);
+        }
+
+        $user = User::findOrFail($user_id);
+
+        if (isset($req->name)) $user->name = $req->name;
+        if (isset($req->email)) $user->email = $req->email;
+        if (isset($req->password)) $user->password = bcrypt($req->password);
+        $this->uploadFile($req, $user);
+
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'user' => $user
+        ], 200);
+    }
+
+    public function uploadFile($req, $user) {
+        // 이름에 시간 넣기
+        $name = $req->file('image')->getClientOriginalName();
+        $extension = $req->file('image')->extension();
+        $nameWithoutExtension = Str::of($name)->basename('.' . $extension);
+        $fileName = $nameWithoutExtension . '_' . time() . '.' . $extension;
+
+        $req->file('image')->storeAs('image', $fileName, 's3');
+
+        $user->image = Storage::disk('s3')->url('image/' . $fileName);
     }
 }

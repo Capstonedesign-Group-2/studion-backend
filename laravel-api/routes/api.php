@@ -29,6 +29,7 @@ Route::middleware(['cors'])->group(function() {
         Route::group(['middleware' => 'auth:api'], function () {
             Route::get("/user", [JWTAuthController::class, 'user']);
             Route::get("/logout", [JWTAuthController::class, 'logout']);
+            Route::patch("/{user_id}", [JWTAuthController::class, 'edit']);
         });
 
         // token이 필요없는 route

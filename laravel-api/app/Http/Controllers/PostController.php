@@ -42,7 +42,6 @@ class PostController extends Controller
             Storage::disk('s3')->delete($fileName);
             $fileUrls[$i]->delete();
         }
-
     }
 
     public function createComposer($req, $audio_id) {
