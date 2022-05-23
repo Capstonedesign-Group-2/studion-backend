@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Chat_user;
 use App\Models\Follow;
-use App\Models\Image;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -177,7 +176,30 @@ class JWTAuthController extends Controller
         ], 200);
     }
 
-    public function check(Request $req, $user_id) {
+    public function check(Request $req) {
+        $validator = Validator::make($req->all(), [
+            'user_id' => 'required|integer',
+            'password' => 'required|string|min:8|max:255'
+        ]);
 
+        if($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->toJson()
+            ], 422);
+        }
+
+        $user = User::findOrFail($req->user_id);
+
+        if (password_verify($req->password, $user->password)) {
+            return response()->json([
+                'status' => 'success'
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'false',
+                'message' => '비밀번호가 맞지않습니다.'
+            ], 422);
+        }
     }
 }
