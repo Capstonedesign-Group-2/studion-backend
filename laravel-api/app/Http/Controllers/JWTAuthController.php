@@ -128,7 +128,8 @@ class JWTAuthController extends Controller
         $validator = Validator::make($req->all(), [
             'name' => 'string|max:100',
             'email' => 'email|max:255|unique:users',
-            'password' => 'string|min:8|max:255'
+            'password' => 'string|min:8|max:255|confirmed',
+            'password_confirmation' => 'string|min:8|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -163,5 +164,20 @@ class JWTAuthController extends Controller
         $req->file('image')->storeAs('image', $fileName, 's3');
 
         $user->image = Storage::disk('s3')->url('image/' . $fileName);
+    }
+
+    public function delete($user_id) {
+        $user = User::findOrFail($user_id);
+
+        $user->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'deleted user info'
+        ], 200);
+    }
+
+    public function check(Request $req, $user_id) {
+
     }
 }
