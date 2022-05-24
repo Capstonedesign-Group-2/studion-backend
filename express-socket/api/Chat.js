@@ -234,15 +234,18 @@ exports.getMessages = async (room_id, user_id) => {
 // clear
 exports.exit = async (room_id, user_id) => {
     const chatDoc = setChatDoc(room_id);
-    const query = (await chatDoc.get()).data();
+    
+    chatDoc.set({
+        users: []
+    }, { merge: true });
+    // const query = (await chatDoc.get()).data();
+    // for (let i = 0; i < query.users.length; i++) {
+    //         chatDoc.set({
+    //             users: []
+    //         }, { merge: true });
 
-    for (let i = 0; i < query.users.length; i++) {
-            chatDoc.set({
-                users: []
-            }, { merge: true });
-
-            break;
-    }
+    //         break;
+    // }
 
     const memberRef = db.collection('chats').doc(room_id.toString()).collection('members');
     const query2 = await memberRef.get();
@@ -252,4 +255,13 @@ exports.exit = async (room_id, user_id) => {
     });
 }
 
+exports.edit_profile = async (data) => {
+    const query = await db.collection('chats')
+        .where('users', 'array-contains', data.user_id)
+        .get();
+
+    query.forEach(doc => {
+        
+    });
+}
 // exit(1, 1);

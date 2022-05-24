@@ -215,6 +215,14 @@ let init = async (io, socket) => {
         }
     });
 
+    socket.on('edit_profile', (data) => {
+        // let data = {
+        //     user_id: 55,
+        //     name?: 'joon', optional
+        //     image?: 'url' optional
+        // }
+    });
+
     socket.on('disconnect', () => {
         let user_id = socketToUsers[socket.id];
 
@@ -228,6 +236,7 @@ let init = async (io, socket) => {
         }
         console.log('chat 연결해제')
     });
+
 }
 
 module.exports = init;
