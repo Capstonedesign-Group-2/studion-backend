@@ -203,7 +203,7 @@ let init = async (io, socket) => {
                 flag: 0
             }
             
-            await firebaseApi.setMessage(res.id, msg);
+            await firebaseApi.setMessage(data.room_id, msg);
 
             if (chat_users[data.to]) {
                 socket.to(chat_users[data.to]).emit('send_chat_msg_on', msg)
