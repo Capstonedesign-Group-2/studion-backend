@@ -143,7 +143,7 @@ class JWTAuthController extends Controller
         if (isset($req->name)) $user->name = $req->name;
         if (isset($req->email)) $user->email = $req->email;
         if (isset($req->password)) $user->password = bcrypt($req->password);
-        $this->uploadFile($req, $user);
+        if (isset($req->image)) $this->uploadFile($req, $user);
 
         $user->save();
 
